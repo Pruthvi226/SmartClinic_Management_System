@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: smart-clinic
+    env: docker
+    plan: free
+    region: ohio
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: smartclinic-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: smartclinic-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: smartclinic-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: smartclinic-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: smartclinic-db
+          property: password
+
+databases:
+  - name: smartclinic-db
+    plan: free
+    databaseName: smartclinic
+    user: root
