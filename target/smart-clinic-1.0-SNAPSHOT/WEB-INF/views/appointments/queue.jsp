@@ -45,7 +45,7 @@ $(document).ready(function() {
         
         $("#queueContent").html('<div style="text-align:center; padding:3rem;">Loading live queue...</div>');
         
-        $.get("<c:url value='/appointments/api/queue/'/>" + doctorId, function(data) {
+        $.get("<c:url value='/api/queue/'/>" + doctorId, function(data) {
             if(data.length === 0) {
                 $("#queueContent").html('<div style="text-align:center; padding:3rem; color:var(--text-muted);">No appointments scheduled for this doctor today.</div>');
                 return;
@@ -66,7 +66,7 @@ $(document).ready(function() {
                     <td><span class="badge ${badgeClass}">${apt.priority}</span></td>
                     <td>${apt.status}</td>
                     <td>
-                        <a href="<c:url value='/doctor/consult?appointmentId='/>${apt.id}" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Start Consult</a>
+                        <a href="<c:url value='/doctor/consult/'/>${apt.id}" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Start Consult</a>
                     </td>
                 </tr>`;
             });

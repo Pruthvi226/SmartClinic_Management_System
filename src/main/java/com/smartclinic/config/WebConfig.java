@@ -24,6 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
+    @SuppressWarnings("null")
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/resources/**").addResourceLocations("/resources/");
     }

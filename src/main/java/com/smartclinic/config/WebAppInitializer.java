@@ -3,8 +3,6 @@ package com.smartclinic.config;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.FilterRegistration;
-// We will programmatically add our custom filter and listener later in AppContextListener or via Spring context.
 
 public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
@@ -19,14 +17,20 @@ public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServlet
     }
 
     @Override
+    @SuppressWarnings("null")
     protected String[] getServletMappings() {
         return new String[] { "/" };
     }
-    
+
     @Override
+    @SuppressWarnings("null")
     public void onStartup(ServletContext servletContext) throws ServletException {
         super.onStartup(servletContext);
-        // Additional filter/listeners like delegating filter proxy can be defined here
-        servletContext.setInitParameter("spring.profiles.active", "prod");
+        // Use environment variable if available, otherwise default to 'prod'
+        String activeProfile = System.getenv("SPRING_PROFILES_ACTIVE");
+        if (activeProfile == null || activeProfile.isEmpty()) {
+            activeProfile = "prod";
+        }
+        servletContext.setInitParameter("spring.profiles.active", activeProfile);
     }
 }

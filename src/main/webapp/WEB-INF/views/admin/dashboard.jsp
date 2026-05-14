@@ -22,8 +22,9 @@
     
     <div style="margin-top:2rem;">
         <h3>Quick Links</h3>
-        <a href="<c:url value='/admin/audit-log'/>" class="btn btn-primary" style="margin-right:1rem;">View Security Audit Logs</a>
-        <a href="<c:url value='/billing/list'/>" class="btn" style="background:#10B981;color:white;">View Hospital Revenue / Bills</a>
+        <a href="<c:url value='/admin/doctors'/>" class="btn btn-primary" style="margin-right:1rem;">Manage Doctors</a>
+        <a href="<c:url value='/admin/audit-log'/>" class="btn btn-secondary" style="margin-right:1rem;">Security Audit Logs</a>
+        <a href="<c:url value='/billing/list'/>" class="btn" style="background:#10B981;color:white;">Hospital Revenue / Bills</a>
     </div>
 </div>
 

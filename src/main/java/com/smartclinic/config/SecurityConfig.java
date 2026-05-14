@@ -38,15 +38,16 @@ public class SecurityConfig {
         http
             .csrf().disable() // Disabling for simplicity in this clinic requirement
             .authenticationProvider(authenticationProvider())
-            .authorizeRequests(authorize -> authorize
-                .antMatchers("/resources/**", "/login").permitAll()
-                .antMatchers("/admin/**").hasAuthority("ADMIN")
-                .antMatchers("/doctor/**").hasAuthority("DOCTOR")
-                .antMatchers("/pharmacy/**").hasAuthority("PHARMACIST")
-                .antMatchers("/patients/register", "/patients/search").hasAnyAuthority("RECEPTIONIST", "ADMIN")
-                .antMatchers("/appointments/book", "/appointments/queue").hasAnyAuthority("RECEPTIONIST", "ADMIN")
-                .antMatchers("/billing/**").hasAuthority("ADMIN")
-                .antMatchers("/dashboard").authenticated()
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/resources/**", "/login").permitAll()
+                .requestMatchers("/admin/**").hasAuthority("ADMIN")
+                .requestMatchers("/doctor/**").hasAuthority("DOCTOR")
+                .requestMatchers("/pharmacy/**").hasAuthority("PHARMACIST")
+                .requestMatchers("/patients/register", "/patients/search").hasAnyAuthority("RECEPTIONIST", "ADMIN")
+                .requestMatchers("/appointments/book", "/appointments/queue").hasAnyAuthority("RECEPTIONIST", "ADMIN")
+                .requestMatchers("/api/**").hasAnyAuthority("RECEPTIONIST", "ADMIN", "DOCTOR", "PHARMACIST")
+                .requestMatchers("/billing/**").hasAuthority("ADMIN")
+                .requestMatchers("/dashboard").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -65,5 +66,10 @@ public class SecurityConfig {
             );
 
         return http.build();
+    }
+
+    @Bean(name = "mvcHandlerMappingIntrospector")
+    public org.springframework.web.servlet.handler.HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
+        return new org.springframework.web.servlet.handler.HandlerMappingIntrospector();
     }
 }

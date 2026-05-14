@@ -1,5 +1,4 @@
 com\smartclinic\model\Appointment$Status.class
-com\smartclinic\util\AppContextListener.class
 com\smartclinic\dao\DoctorDaoImpl.class
 com\smartclinic\controller\DoctorController.class
 com\smartclinic\service\UserService.class
@@ -8,8 +7,10 @@ com\smartclinic\model\User.class
 com\smartclinic\config\SecurityConfig.class
 com\smartclinic\service\AuditLogServiceImpl.class
 com\smartclinic\service\PatientService.class
+com\smartclinic\controller\AppointmentApiController.class
 com\smartclinic\controller\PatientController.class
 com\smartclinic\dao\PrescriptionDaoImpl.class
+com\smartclinic\dto\ErrorResponse.class
 com\smartclinic\config\WebAppInitializer.class
 com\smartclinic\dao\UserDao.class
 com\smartclinic\service\DoctorService.class
@@ -25,6 +26,7 @@ com\smartclinic\dao\GenericDaoImpl.class
 com\smartclinic\filter\AuditFilter.class
 com\smartclinic\dao\AuditLogDao.class
 com\smartclinic\dao\BillingDaoImpl.class
+com\smartclinic\controller\PatientApiController.class
 com\smartclinic\config\WebConfig.class
 com\smartclinic\dao\PrescriptionDao.class
 com\smartclinic\model\Billing.class
@@ -42,17 +44,22 @@ com\smartclinic\service\AppointmentService.class
 com\smartclinic\config\AppConfig.class
 com\smartclinic\controller\GlobalExceptionHandler.class
 com\smartclinic\service\UserServiceImpl.class
+com\smartclinic\config\SecurityWebApplicationInitializer.class
+com\smartclinic\controller\PrescriptionApiController.class
 com\smartclinic\service\AppointmentServiceImpl.class
 com\smartclinic\util\PdfReportGenerator.class
 com\smartclinic\service\AuditLogService.class
 com\smartclinic\controller\AdminController.class
 com\smartclinic\controller\BillingController.class
 com\smartclinic\dao\PatientDao.class
+com\smartclinic\controller\BillingApiController.class
+com\smartclinic\controller\DoctorApiController.class
 com\smartclinic\dao\AppointmentDaoImpl.class
 com\smartclinic\model\PrescriptionItem.class
 com\smartclinic\service\DoctorServiceImpl.class
 com\smartclinic\model\AuditLog.class
 com\smartclinic\dao\UserDaoImpl.class
 com\smartclinic\controller\AppointmentController.class
+com\smartclinic\util\DataSeeder.class
 com\smartclinic\dao\PatientDaoImpl.class
 com\smartclinic\model\Doctor.class

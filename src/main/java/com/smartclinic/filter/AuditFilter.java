@@ -21,6 +21,7 @@ public class AuditFilter implements Filter {
     private UserService userService;
 
     @Override
+    @SuppressWarnings("null")
     public void init(FilterConfig filterConfig) throws ServletException {
         ApplicationContext ctx = WebApplicationContextUtils
                 .getRequiredWebApplicationContext(filterConfig.getServletContext());

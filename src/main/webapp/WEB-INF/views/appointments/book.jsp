@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" import="java.time.LocalDate" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <jsp:include page="../layout/header.jsp" />
 
@@ -47,7 +47,7 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
             <div class="form-group">
                 <label>Date</label>
-                <input type="date" id="dateSelect" class="form-control" required />
+                <input type="date" id="dateSelect" class="form-control" required min="<%= LocalDate.now() %>" />
             </div>
             <div class="form-group">
                 <label>Priority</label>
@@ -83,9 +83,9 @@ $(document).ready(function() {
         const date = $('#dateSelect').val();
         const priority = $('#prioritySelect').val();
         
-        if (docId && date) {
+        if (docId && date && date.length === 10) {
             $('#slotTimeSelect').prop('disabled', false).html('<option>Checking availability...</option>');
-            $.get('<c:url value="/appointments/api/slots"/>', {
+            $.get('<c:url value="/api/slots"/>', {
                 doctorId: docId,
                 date: date,
                 priority: priority

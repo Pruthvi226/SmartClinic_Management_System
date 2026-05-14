@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS smartclinic;
-USE smartclinic;
+-- Database and schema auto-created by Hibernate (see database.properties with hibernate.hbm2ddl.auto=update)
+-- Keeping table definitions below for reference only
 
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -19,7 +19,9 @@ CREATE TABLE IF NOT EXISTS patients (
     email VARCHAR(255),
     blood_group VARCHAR(10),
     address TEXT,
-    registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_patient_phone (phone),
+    INDEX idx_patient_name (name)
 );
 
 CREATE TABLE IF NOT EXISTS doctors (
@@ -40,7 +42,8 @@ CREATE TABLE IF NOT EXISTS appointments (
     priority ENUM('NORMAL', 'SENIOR', 'EMERGENCY') NOT NULL DEFAULT 'NORMAL',
     notes TEXT,
     FOREIGN KEY (patient_id) REFERENCES patients(id),
-    FOREIGN KEY (doctor_id) REFERENCES doctors(id)
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id),
+    INDEX idx_appointment_doctor_date (doctor_id, slot_datetime)
 );
 
 CREATE TABLE IF NOT EXISTS prescriptions (

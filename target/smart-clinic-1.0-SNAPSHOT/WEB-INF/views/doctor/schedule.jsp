@@ -47,7 +47,7 @@
                 <td>
                     <c:set var="pClass" value="badge-normal" />
                     <c:if test="${a.priority == 'EMERGENCY'}"><c:set var="pClass" value="badge-emergency" /></c:if>
-                    <c:if test="${a.priority == 'SENIOR'}"><c:set var="pClass" value="badge-senior" /></c:set>
+                    <c:if test="${a.priority == 'SENIOR'}"><c:set var="pClass" value="badge-senior" /></c:if>
                     <span class="badge ${pClass}">${a.priority}</span>
                 </td>
                 <td><span class="badge" style="background:#F1F5F9; color:var(--text-dark);">${a.status}</span></td>

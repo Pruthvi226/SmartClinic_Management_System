@@ -1,6 +1,7 @@
 package com.smartclinic.model;
 
 import javax.persistence.*;
+import javax.validation.constraints.*;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
@@ -14,17 +15,22 @@ public class Prescription {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "appointment_id", nullable = false)
+    @NotNull(message = "Appointment is required for prescription")
     private Appointment appointment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", nullable = false)
+    @NotNull(message = "Doctor is required for prescription")
     private Doctor doctor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
+    @NotNull(message = "Patient is required for prescription")
     private Patient patient;
 
     @Column(columnDefinition = "TEXT", nullable = false)
+    @NotBlank(message = "Diagnosis is required")
+    @Size(min = 5, max = 2000, message = "Diagnosis must be between 5 and 2000 characters")
     private String diagnosis;
 
     @Column(name = "issued_at", insertable = false, updatable = false)
@@ -33,31 +39,68 @@ public class Prescription {
     @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<PrescriptionItem> items;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Appointment getAppointment() { return appointment; }
-    public void setAppointment(Appointment appointment) { this.appointment = appointment; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Doctor getDoctor() { return doctor; }
-    public void setDoctor(Doctor doctor) { this.doctor = doctor; }
+    public Appointment getAppointment() {
+        return appointment;
+    }
 
-    public Patient getPatient() { return patient; }
-    public void setPatient(Patient patient) { this.patient = patient; }
+    public void setAppointment(Appointment appointment) {
+        this.appointment = appointment;
+    }
 
-    public String getDiagnosis() { return diagnosis; }
-    public void setDiagnosis(String diagnosis) { this.diagnosis = diagnosis; }
+    public Doctor getDoctor() {
+        return doctor;
+    }
 
-    public Timestamp getIssuedAt() { return issuedAt; }
-    public void setIssuedAt(Timestamp issuedAt) { this.issuedAt = issuedAt; }
+    public void setDoctor(Doctor doctor) {
+        this.doctor = doctor;
+    }
 
-    public List<PrescriptionItem> getItems() { return items; }
-    public void setItems(List<PrescriptionItem> items) { this.items = items; }
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public void setPatient(Patient patient) {
+        this.patient = patient;
+    }
+
+    public String getDiagnosis() {
+        return diagnosis;
+    }
+
+    public void setDiagnosis(String diagnosis) {
+        this.diagnosis = diagnosis;
+    }
+
+    public Timestamp getIssuedAt() {
+        return issuedAt;
+    }
+
+    public void setIssuedAt(Timestamp issuedAt) {
+        this.issuedAt = issuedAt;
+    }
+
+    public List<PrescriptionItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<PrescriptionItem> items) {
+        this.items = items;
+    }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Prescription)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof Prescription))
+            return false;
         Prescription that = (Prescription) o;
         return Objects.equals(id, that.id);
     }

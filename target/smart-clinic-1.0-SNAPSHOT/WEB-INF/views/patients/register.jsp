@@ -37,9 +37,15 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label>Phone Number</label>
-            <form:input path="phone" class="form-control" placeholder="+91 9876543210" required="true" />
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+            <div class="form-group">
+                <label>Phone Number</label>
+                <form:input path="phone" class="form-control" placeholder="+91 9876543210" required="true" />
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <form:input path="email" type="email" class="form-control" placeholder="patient@example.com" required="true" />
+            </div>
         </div>
 
         <div class="form-group">

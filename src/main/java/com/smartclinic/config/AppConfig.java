@@ -38,6 +38,7 @@ public class AppConfig {
     }
 
     @Bean
+    @SuppressWarnings("null")
     public LocalSessionFactoryBean sessionFactory() {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(dataSource());
