@@ -45,7 +45,8 @@ $(document).ready(function() {
         
         $("#queueContent").html('<div style="text-align:center; padding:3rem;">Loading live queue...</div>');
         
-        $.get("<c:url value='/api/queue/'/>" + doctorId, function(data) {
+        $.get("<c:url value='/api/appointments/queue/'/>" + doctorId, function(response) {
+            const data = response.data || response;
             if(data.length === 0) {
                 $("#queueContent").html('<div style="text-align:center; padding:3rem; color:var(--text-muted);">No appointments scheduled for this doctor today.</div>');
                 return;
@@ -60,15 +61,16 @@ $(document).ready(function() {
                 let date = new Date(apt.slotDatetime);
                 let timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 
-                html += `<tr>
-                    <td><strong>${timeStr}</strong></td>
-                    <td>${apt.patient.name}</td>
-                    <td><span class="badge ${badgeClass}">${apt.priority}</span></td>
-                    <td>${apt.status}</td>
-                    <td>
-                        <a href="<c:url value='/doctor/consult/'/>${apt.id}" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Start Consult</a>
-                    </td>
-                </tr>`;
+                const action = apt.status === 'SCHEDULED'
+                    ? '<a href="<c:url value="/doctor/consult/"/>' + apt.id + '" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Start Consult</a>'
+                    : '-';
+                html += '<tr>'
+                    + '<td><strong>' + timeStr + '</strong></td>'
+                    + '<td>' + (apt.patient ? apt.patient.name : 'Unknown') + '</td>'
+                    + '<td><span class="badge ' + badgeClass + '">' + apt.priority + '</span></td>'
+                    + '<td>' + apt.status + '</td>'
+                    + '<td>' + action + '</td>'
+                    + '</tr>';
             });
             html += '</tbody></table>';
             $("#queueContent").html(html);

@@ -2,6 +2,7 @@ package com.smartclinic.model;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -12,7 +13,7 @@ import java.util.Objects;
 @NamedQueries({
         // Solving N+1 by using JOIN FETCH for doctor and patient fetching
         // simultaneously
-        @NamedQuery(name = "Appointment.findUpcomingByDoctor", query = "SELECT a FROM Appointment a JOIN FETCH a.patient JOIN FETCH a.doctor d JOIN FETCH d.user WHERE a.doctor.id = :doctorId AND a.slotDatetime >= current_timestamp ORDER BY a.slotDatetime ASC")
+        @NamedQuery(name = "Appointment.findUpcomingByDoctor", query = "SELECT a FROM Appointment a JOIN FETCH a.patient JOIN FETCH a.doctor d JOIN FETCH d.user WHERE a.doctor.id = :doctorId AND a.status = 'SCHEDULED' AND a.slotDatetime >= current_timestamp ORDER BY a.slotDatetime ASC")
 })
 public class Appointment {
     @Id
@@ -31,7 +32,6 @@ public class Appointment {
 
     @Column(name = "slot_datetime", nullable = false)
     @NotNull(message = "Appointment date and time is required")
-    @FutureOrPresent(message = "Appointment date must be in the future or present")
     private LocalDateTime slotDatetime;
 
     @Enumerated(EnumType.STRING)
@@ -86,6 +86,10 @@ public class Appointment {
 
     public void setSlotDatetime(LocalDateTime slotDatetime) {
         this.slotDatetime = slotDatetime;
+    }
+
+    public Timestamp getSlotDatetimeAsDate() {
+        return slotDatetime == null ? null : Timestamp.valueOf(slotDatetime);
     }
 
     public Status getStatus() {

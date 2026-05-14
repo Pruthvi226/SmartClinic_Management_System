@@ -32,8 +32,10 @@
     <div style="margin-top: 2rem; font-size: 0.9em; color: #666; background: #f9f9f9; padding: 1rem; border-radius:8px; border: 1px dashed #ccc;">
         <strong>Demo Accounts</strong><br>
         <i>Created automatically on startup:</i><br>
-        Admin: admin@smartclinic.com<br>
-        Pass: admin123
+        Admin: admin@smartclinic.com / admin123<br>
+        Doctor: doctor@smartclinic.com / doctor123<br>
+        Reception: reception@smartclinic.com / reception123<br>
+        Pharmacy: pharmacy@smartclinic.com / pharmacy123
     </div>
 </div>
 

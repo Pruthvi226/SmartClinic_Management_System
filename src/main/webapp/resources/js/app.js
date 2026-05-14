@@ -1,4 +1,6 @@
 $(document).ready(function() {
+    const contextPath = window.smartClinicContextPath || '';
+    const apiBase = contextPath + '/api/appointments';
     
     $('#doctorSelect, #prioritySelect').on('change', function() {
         fetchSlots();
@@ -14,7 +16,8 @@ $(document).ready(function() {
         const priority = $('#prioritySelect').val();
         
         if(docId && date && priority) {
-            $.get(window.location.origin + '/appointments/api/slots', { doctorId: docId, date: date, priority: priority }, function(data) {
+            $.get(apiBase + '/slots', { doctorId: docId, date: date, priority: priority }, function(response) {
+                const data = response.data || response;
                 const select = $('#slotTimeSelect');
                 select.empty();
                 if(!data || data.length === 0) {
@@ -43,7 +46,8 @@ $(document).ready(function() {
         });
         
         function loadQueue(docId) {
-            $.get(window.location.origin + '/appointments/api/queue/' + docId, function(data) {
+            $.get(apiBase + '/queue/' + docId, function(response) {
+                const data = response.data || response;
                 const tbody = $('#queueTable tbody');
                 tbody.empty();
                 if(!data || data.length === 0) {
@@ -60,7 +64,7 @@ $(document).ready(function() {
                     
                     const time = new Date(appt.slotDatetime).toLocaleString();
                     const actionBtn = appt.status === 'SCHEDULED' ? 
-                        `<a href="/doctor/consult/${appt.id}" class="btn btn-primary" style="padding:0.25rem 0.5rem;font-size:0.875rem">Consult</a>` : '-';
+                        `<a href="${contextPath}/doctor/consult/${appt.id}" class="btn btn-primary" style="padding:0.25rem 0.5rem;font-size:0.875rem">Consult</a>` : '-';
                         
                     tbody.append(`
                         <tr>

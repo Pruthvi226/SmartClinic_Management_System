@@ -126,6 +126,7 @@ A comprehensive Spring MVC-based Hospital Management System with patient managem
    - Login with default credentials:
      - Email: `admin@smartclinic.com`
      - Password: `admin123`
+   - MySQL is exposed on host port `3308` and container port `3306`
 
 ---
 
@@ -148,7 +149,7 @@ Edit `src/main/resources/database.properties`:
 
 ```properties
 db.driver=com.mysql.cj.jdbc.Driver
-db.url=jdbc:mysql://localhost:3306/smartclinic?useSSL=false&serverTimezone=UTC
+db.url=jdbc:mysql://localhost:3308/smartclinic?useSSL=false&serverTimezone=UTC
 db.username=root
 db.password=your_password
 ```
@@ -157,7 +158,7 @@ Or set environment variables:
 
 ```bash
 export DB_HOST=localhost
-export DB_PORT=3306
+export DB_PORT=3308
 export DB_NAME=smartclinic
 export DB_USER=root
 export DB_PASSWORD=your_password
@@ -191,6 +192,8 @@ cp target/smart-clinic-1.0-SNAPSHOT.war $CATALINA_HOME/webapps/ROOT.war
 - **URL:** http://localhost:8080
 - **Default Admin:** admin@smartclinic.com / admin123
 - **Default Doctor:** doctor@smartclinic.com / doctor123
+- **Default Reception:** reception@smartclinic.com / reception123
+- **Default Pharmacy:** pharmacy@smartclinic.com / pharmacy123
 
 ---
 
@@ -529,7 +532,7 @@ Create `.env` file in project root:
 ```bash
 # Database
 DB_HOST=localhost
-DB_PORT=3306
+DB_PORT=3308
 DB_NAME=smartclinic
 DB_USER=root
 DB_PASSWORD=secure_password
@@ -538,6 +541,7 @@ DB_PASSWORD=secure_password
 SPRING_PROFILES_ACTIVE=prod
 APP_PORT=8080
 DB_CONTAINER_PORT=3306
+DB_HOST_PORT=3308
 ```
 
 ### Property Files
@@ -586,8 +590,8 @@ mvn -version
 **Error: "Port already in use"**
 
 ```bash
-# Change port in .env or docker-compose.yml
-APP_PORT=8081
+# The demo app is fixed to host port 8080.
+# Stop the process using 8080, then rerun Docker Compose.
 ```
 
 **Error: "Database connection timeout in Docker"**
@@ -622,10 +626,12 @@ netstat -tuln | grep 8080
 
 Created automatically on first run:
 
-| Email                  | Password  | Role   |
-| ---------------------- | --------- | ------ |
-| admin@smartclinic.com  | admin123  | ADMIN  |
-| doctor@smartclinic.com | doctor123 | DOCTOR |
+| Email                      | Password     | Role         |
+| -------------------------- | ------------ | ------------ |
+| admin@smartclinic.com      | admin123     | ADMIN        |
+| doctor@smartclinic.com     | doctor123    | DOCTOR       |
+| reception@smartclinic.com  | reception123 | RECEPTIONIST |
+| pharmacy@smartclinic.com   | pharmacy123  | PHARMACIST   |
 
 ⚠️ **Change passwords immediately in production!**
 

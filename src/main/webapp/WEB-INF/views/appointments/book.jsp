@@ -85,18 +85,19 @@ $(document).ready(function() {
         
         if (docId && date && date.length === 10) {
             $('#slotTimeSelect').prop('disabled', false).html('<option>Checking availability...</option>');
-            $.get('<c:url value="/api/slots"/>', {
+            $.get('<c:url value="/api/appointments/slots"/>', {
                 doctorId: docId,
                 date: date,
                 priority: priority
-            }, function(slots) {
+            }, function(response) {
+                const slots = response.data || response;
                 let html = '';
                 if (slots.length === 0) {
                     html = '<option value="">No slots available for this date</option>';
                 } else {
                     slots.forEach(s => {
                         const time = new Date(s).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        html += `<option value="${s}">${time}</option>`;
+                        html += '<option value="' + s + '">' + time + '</option>';
                     });
                 }
                 $('#slotTimeSelect').html(html);

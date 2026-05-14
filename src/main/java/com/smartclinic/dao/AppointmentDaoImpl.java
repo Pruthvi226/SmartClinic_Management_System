@@ -6,6 +6,15 @@ import java.util.List;
 @Repository
 public class AppointmentDaoImpl extends GenericDaoImpl<Appointment, Long> implements AppointmentDao {
     @Override
+    public Appointment findById(Long id) {
+        return getSession().createQuery(
+                "select a from Appointment a join fetch a.patient join fetch a.doctor d join fetch d.user where a.id = :id",
+                Appointment.class)
+                .setParameter("id", id)
+                .uniqueResult();
+    }
+
+    @Override
     public List<Appointment> findUpcomingByDoctor(Long doctorId) {
         return getSession().createNamedQuery("Appointment.findUpcomingByDoctor", Appointment.class)
                 .setParameter("doctorId", doctorId)

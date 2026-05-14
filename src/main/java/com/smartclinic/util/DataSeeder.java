@@ -1,12 +1,29 @@
 package com.smartclinic.util;
 
+import com.smartclinic.model.Appointment;
+import com.smartclinic.model.Billing;
+import com.smartclinic.model.Doctor;
+import com.smartclinic.model.Patient;
+import com.smartclinic.model.Prescription;
+import com.smartclinic.model.PrescriptionItem;
 import com.smartclinic.model.User;
+import com.smartclinic.service.AppointmentService;
+import com.smartclinic.service.BillingService;
+import com.smartclinic.service.DoctorService;
+import com.smartclinic.service.PatientService;
+import com.smartclinic.service.PrescriptionService;
 import com.smartclinic.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
@@ -15,7 +32,19 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
     private UserService userService;
 
     @Autowired
-    private com.smartclinic.service.DoctorService doctorService;
+    private DoctorService doctorService;
+
+    @Autowired
+    private PatientService patientService;
+
+    @Autowired
+    private AppointmentService appointmentService;
+
+    @Autowired
+    private PrescriptionService prescriptionService;
+
+    @Autowired
+    private BillingService billingService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -23,39 +52,169 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
     @Override
     @SuppressWarnings("null")
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        // Ensure seeder only runs for the root context
         if (event.getApplicationContext().getParent() == null) {
             seedData();
         }
     }
 
     private void seedData() {
-        if (userService.findByEmail("admin@smartclinic.com") == null) {
-            User admin = new User();
-            admin.setName("System Admin");
-            admin.setEmail("admin@smartclinic.com");
-            admin.setPassword(passwordEncoder.encode("admin123"));
-            admin.setRole(User.Role.ADMIN);
-            userService.save(admin);
-            System.out.println("Default admin user seeded: admin@smartclinic.com / admin123");
+        User admin = upsertUser("System Admin", "admin@smartclinic.com", "admin123", User.Role.ADMIN);
+        User doctorUser = upsertUser("Dr. John Smith", "doctor@smartclinic.com", "doctor123", User.Role.DOCTOR);
+        User cardioUser = upsertUser("Dr. Priya Nair", "cardio@smartclinic.com", "doctor123", User.Role.DOCTOR);
+        upsertUser("Reception Desk", "reception@smartclinic.com", "reception123", User.Role.RECEPTIONIST);
+        upsertUser("Pharmacy Desk", "pharmacy@smartclinic.com", "pharmacy123", User.Role.PHARMACIST);
+
+        Doctor generalDoctor = upsertDoctor(doctorUser, "General Physician",
+                "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY", 30);
+        Doctor cardioDoctor = upsertDoctor(cardioUser, "Cardiology", "MONDAY,WEDNESDAY,FRIDAY", 30);
+
+        List<Patient> patients = seedPatients();
+        seedAppointmentsAndClinicalData(patients, generalDoctor, cardioDoctor);
+
+        System.out.println("Demo users ready. Admin login: " + admin.getEmail() + " / admin123");
+    }
+
+    private User upsertUser(String name, String email, String rawPassword, User.Role role) {
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            user = new User();
+            user.setEmail(email);
         }
 
-        if (userService.findByEmail("doctor@smartclinic.com") == null) {
-            User docUser = new User();
-            docUser.setName("Dr. John Smith");
-            docUser.setEmail("doctor@smartclinic.com");
-            docUser.setPassword(passwordEncoder.encode("doctor123"));
-            docUser.setRole(User.Role.DOCTOR);
-            userService.save(docUser);
+        user.setName(name);
+        user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setRole(role);
+        userService.save(user);
+        return userService.findByEmail(email);
+    }
 
-            com.smartclinic.model.Doctor doctor = new com.smartclinic.model.Doctor();
-            doctor.setUser(docUser);
-            doctor.setSpecialization("General Physician");
-            doctor.setAvailableDays("MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY");
-            doctor.setSlotDurationMins(30);
-            doctorService.save(doctor);
-            
-            System.out.println("Default doctor user and entity seeded: doctor@smartclinic.com / doctor123");
+    private Doctor upsertDoctor(User user, String specialization, String availableDays, int slotDurationMins) {
+        Doctor doctor = doctorService.findByUserId(user.getId());
+        if (doctor == null) {
+            doctor = new Doctor();
+            doctor.setUser(user);
+        }
+
+        doctor.setSpecialization(specialization);
+        doctor.setAvailableDays(availableDays);
+        doctor.setSlotDurationMins(slotDurationMins);
+        doctorService.save(doctor);
+        return doctorService.findByUserId(user.getId());
+    }
+
+    private List<Patient> seedPatients() {
+        Patient aarav = upsertPatient("Aarav Mehta", "1992-08-12", 33, "MALE",
+                "+91 98765 43210", "aarav.mehta@example.com", "O+", "Bandra West, Mumbai");
+        Patient neha = upsertPatient("Neha Sharma", "1988-03-24", 38, "FEMALE",
+                "+91 99887 77665", "neha.sharma@example.com", "A+", "Indiranagar, Bengaluru");
+        Patient rohan = upsertPatient("Rohan Iyer", "1956-11-05", 69, "MALE",
+                "+91 91234 56789", "rohan.iyer@example.com", "B+", "Adyar, Chennai");
+        Patient fatima = upsertPatient("Fatima Khan", "2001-01-17", 25, "FEMALE",
+                "+91 90123 45678", "fatima.khan@example.com", "AB+", "Koregaon Park, Pune");
+        Patient vikram = upsertPatient("Vikram Rao", "1978-07-30", 47, "MALE",
+                "+91 93456 78120", "vikram.rao@example.com", "O-", "Jubilee Hills, Hyderabad");
+
+        return Arrays.asList(aarav, neha, rohan, fatima, vikram);
+    }
+
+    private Patient upsertPatient(String name, String dob, int age, String gender, String phone,
+            String email, String bloodGroup, String address) {
+        Patient patient = patientService.findAll().stream()
+                .filter(p -> email.equalsIgnoreCase(p.getEmail()))
+                .findFirst()
+                .orElseGet(Patient::new);
+
+        patient.setName(name);
+        patient.setDob(Date.valueOf(dob));
+        patient.setAge(age);
+        patient.setGender(gender);
+        patient.setPhone(phone);
+        patient.setEmail(email);
+        patient.setBloodGroup(bloodGroup);
+        patient.setAddress(address);
+        patientService.registerPatient(patient);
+
+        return patientService.findAll().stream()
+                .filter(p -> email.equalsIgnoreCase(p.getEmail()))
+                .findFirst()
+                .orElse(patient);
+    }
+
+    private void seedAppointmentsAndClinicalData(List<Patient> patients, Doctor generalDoctor, Doctor cardioDoctor) {
+        boolean appointmentsAlreadySeeded = patients.stream()
+                .anyMatch(patient -> !appointmentService.getPatientHistory(patient.getId()).isEmpty());
+        if (appointmentsAlreadySeeded) {
+            return;
+        }
+
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        bookDemoAppointment(patients.get(0), generalDoctor, tomorrow.atTime(9, 0),
+                Appointment.Status.SCHEDULED, Appointment.Priority.NORMAL, "Fever and body ache follow-up");
+        bookDemoAppointment(patients.get(1), generalDoctor, tomorrow.atTime(9, 30),
+                Appointment.Status.SCHEDULED, Appointment.Priority.EMERGENCY, "Shortness of breath triage");
+        bookDemoAppointment(patients.get(2), cardioDoctor, tomorrow.atTime(10, 0),
+                Appointment.Status.SCHEDULED, Appointment.Priority.SENIOR, "Blood pressure review");
+        bookDemoAppointment(patients.get(3), generalDoctor, tomorrow.plusDays(1).atTime(11, 0),
+                Appointment.Status.SCHEDULED, Appointment.Priority.NORMAL, "Annual wellness consultation");
+
+        Appointment completed = bookDemoAppointment(patients.get(4), cardioDoctor,
+                LocalDateTime.now().minusDays(2).withHour(10).withMinute(30).withSecond(0).withNano(0),
+                Appointment.Status.COMPLETED, Appointment.Priority.NORMAL, "Chest discomfort consultation completed");
+
+        seedPrescription(completed);
+        seedBilling(completed);
+    }
+
+    private Appointment bookDemoAppointment(Patient patient, Doctor doctor, LocalDateTime slot,
+            Appointment.Status status, Appointment.Priority priority, String notes) {
+        Appointment appointment = new Appointment();
+        appointment.setPatient(patient);
+        appointment.setDoctor(doctor);
+        appointment.setSlotDatetime(slot);
+        appointment.setStatus(status);
+        appointment.setPriority(priority);
+        appointment.setNotes(notes);
+        appointmentService.bookAppointment(appointment);
+        return appointment;
+    }
+
+    private void seedPrescription(Appointment appointment) {
+        if (!prescriptionService.getPatientPrescriptions(appointment.getPatient().getId()).isEmpty()) {
+            return;
+        }
+
+        Prescription prescription = new Prescription();
+        prescription.setAppointment(appointment);
+        prescription.setDoctor(appointment.getDoctor());
+        prescription.setPatient(appointment.getPatient());
+        prescription.setDiagnosis("Stable angina symptoms reviewed. ECG advised, lipid profile requested, and medication started.");
+
+        PrescriptionItem aspirin = medicine("Aspirin", "75 mg", "30 days", "Take once daily after breakfast");
+        PrescriptionItem statin = medicine("Atorvastatin", "10 mg", "30 days", "Take once at night");
+        PrescriptionItem pantoprazole = medicine("Pantoprazole", "40 mg", "14 days", "Take before breakfast");
+
+        prescription.setItems(Arrays.asList(aspirin, statin, pantoprazole));
+        prescription.getItems().forEach(item -> item.setPrescription(prescription));
+        prescriptionService.createPrescription(prescription);
+    }
+
+    private PrescriptionItem medicine(String name, String dosage, String duration, String instructions) {
+        PrescriptionItem item = new PrescriptionItem();
+        item.setMedicineName(name);
+        item.setDosage(dosage);
+        item.setDuration(duration);
+        item.setInstructions(instructions);
+        return item;
+    }
+
+    private void seedBilling(Appointment appointment) {
+        if (!billingService.findAll().isEmpty()) {
+            return;
+        }
+
+        Billing bill = billingService.generateBill(appointment.getId());
+        if (bill != null && bill.getId() != null) {
+            billingService.updatePaymentStatus(bill.getId(), "PAID");
         }
     }
 }

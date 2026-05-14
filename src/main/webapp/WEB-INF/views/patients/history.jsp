@@ -40,7 +40,7 @@
                 <tbody>
                     <c:forEach var="a" items="${appointments}">
                     <tr>
-                        <td><strong><fmt:formatDate value="${a.slotDatetime}" type="both" pattern="dd MMM yyyy, HH:mm"/></strong></td>
+                        <td><strong><fmt:formatDate value="${a.slotDatetimeAsDate}" type="both" pattern="dd MMM yyyy, HH:mm"/></strong></td>
                         <td>Dr. ${a.doctor.user.name}</td>
                         <td><span class="badge badge-normal">${a.status}</span></td>
                     </tr>
