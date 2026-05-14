@@ -6,4 +6,6 @@ public interface AppointmentDao extends GenericDao<Appointment, Long> {
     List<Appointment> findUpcomingByDoctor(Long doctorId);
     List<Appointment> findByDoctorAndDatePrefix(Long doctorId, LocalDateTime startOfDay, LocalDateTime endOfDay);
     List<Appointment> findByPatientId(Long patientId);
+    List<Appointment> findByDateRange(LocalDateTime startOfDay, LocalDateTime endOfDay);
+    List<Appointment> findAllFetched();
 }

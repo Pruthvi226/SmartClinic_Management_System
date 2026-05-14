@@ -34,4 +34,22 @@ public class AppointmentDaoImpl extends GenericDaoImpl<Appointment, Long> implem
                 .setParameter("patientId", patientId)
                 .list();
     }
+
+    @Override
+    public List<Appointment> findByDateRange(LocalDateTime startOfDay, LocalDateTime endOfDay) {
+        return getSession().createQuery(
+                "select a from Appointment a join fetch a.patient join fetch a.doctor d join fetch d.user where a.slotDatetime >= :start and a.slotDatetime < :end order by a.slotDatetime asc",
+                Appointment.class)
+                .setParameter("start", startOfDay)
+                .setParameter("end", endOfDay)
+                .list();
+    }
+
+    @Override
+    public List<Appointment> findAllFetched() {
+        return getSession().createQuery(
+                "select a from Appointment a join fetch a.patient join fetch a.doctor d join fetch d.user order by a.slotDatetime desc",
+                Appointment.class)
+                .list();
+    }
 }

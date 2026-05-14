@@ -36,7 +36,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf().disable() // Disabling for simplicity in this clinic requirement
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/resources/**", "/login").permitAll()
@@ -44,7 +43,8 @@ public class SecurityConfig {
                 .requestMatchers("/doctor/**").hasAuthority("DOCTOR")
                 .requestMatchers("/pharmacy/**").hasAuthority("PHARMACIST")
                 .requestMatchers("/patients/register", "/patients/search").hasAnyAuthority("RECEPTIONIST", "ADMIN")
-                .requestMatchers("/appointments/book", "/appointments/queue").hasAnyAuthority("RECEPTIONIST", "ADMIN")
+                .requestMatchers("/patients/*/edit").hasAnyAuthority("RECEPTIONIST", "ADMIN")
+                .requestMatchers("/appointments/**").hasAnyAuthority("RECEPTIONIST", "ADMIN")
                 .requestMatchers("/api/**").hasAnyAuthority("RECEPTIONIST", "ADMIN", "DOCTOR", "PHARMACIST")
                 .requestMatchers("/billing/**").hasAuthority("ADMIN")
                 .requestMatchers("/dashboard").authenticated()

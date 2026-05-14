@@ -40,13 +40,45 @@ public class PatientController {
         return "redirect:/patients/search?success=true";
     }
 
-    @GetMapping("/search")
-    public String searchPatients(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            model.addAttribute("patients", patientService.searchPatients(keyword));
-        } else {
-            model.addAttribute("patients", patientService.findAll());
+    @GetMapping("/{id}/edit")
+    public String showEditForm(@PathVariable("id") Long id, Model model) {
+        Patient patient = patientService.findById(id);
+        if (patient == null) {
+            return "redirect:/patients/search?error=not_found";
         }
+        model.addAttribute("patient", patient);
+        model.addAttribute("editMode", true);
+        return "patients/register";
+    }
+
+    @PostMapping("/{id}/edit")
+    public String updatePatient(@PathVariable("id") Long id,
+            @Valid @ModelAttribute("patient") Patient patient,
+            BindingResult result,
+            Model model) {
+        if (result.hasErrors()) {
+            model.addAttribute("editMode", true);
+            return "patients/register";
+        }
+        patient.setId(id);
+        patientService.updatePatient(patient);
+        return "redirect:/patients/" + id + "/history?updated=true";
+    }
+
+    @GetMapping("/search")
+    public String searchPatients(@RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "page", required = false) Integer page,
+            Model model) {
+        java.util.List<Patient> patients;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            patients = patientService.searchPatients(keyword);
+        } else {
+            patients = patientService.findAll();
+        }
+        com.smartclinic.util.PageSlice<Patient> pageSlice = com.smartclinic.util.PaginationUtil.paginate(patients, page, 10);
+        model.addAttribute("patients", pageSlice.getItems());
+        model.addAttribute("pageSlice", pageSlice);
+        model.addAttribute("keyword", keyword);
         return "patients/search";
     }
 

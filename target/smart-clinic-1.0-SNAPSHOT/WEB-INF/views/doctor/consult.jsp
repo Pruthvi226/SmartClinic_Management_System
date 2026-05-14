@@ -7,7 +7,10 @@
     <div style="margin-bottom: 2rem; background: #f9fafb; padding:1rem; border-radius:8px;">
         <strong>Dob:</strong> ${appointment.patient.dob} | 
         <strong>Blood:</strong> ${appointment.patient.bloodGroup} | 
-        <strong>Allergies/History:</strong> Check Patient History tab.
+        <strong>Allergies:</strong> <span id="patientAllergies" data-allergies="${appointment.patient.allergies}">${empty appointment.patient.allergies ? 'None recorded' : appointment.patient.allergies}</span>
+    </div>
+    <div id="allergyWarning" style="display:none; color:#991B1B; background:#FEF2F2; border:1px solid #FECACA; padding:1rem; border-radius:8px; margin-bottom:1rem;">
+        Allergy warning: review the selected medicine before completing this prescription.
     </div>
 
     <form action="<c:url value='/doctor/consult/${appointment.id}'/>" method="POST">

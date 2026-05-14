@@ -6,8 +6,10 @@ import java.util.List;
 public class PatientDaoImpl extends GenericDaoImpl<Patient, Long> implements PatientDao {
     @Override
     public List<Patient> searchByNameOrPhone(String keyword) {
-        return getSession().createQuery("from Patient p where p.name like :kw or p.phone like :kw", Patient.class)
-                .setParameter("kw", "%" + keyword + "%")
+        return getSession().createQuery(
+                "from Patient p where lower(p.name) like :kw or lower(p.phone) like :kw or lower(p.email) like :kw order by p.name",
+                Patient.class)
+                .setParameter("kw", "%" + keyword.toLowerCase() + "%")
                 .list();
     }
 }

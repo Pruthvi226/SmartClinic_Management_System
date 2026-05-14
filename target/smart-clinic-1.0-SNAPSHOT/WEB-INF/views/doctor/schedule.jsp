@@ -39,7 +39,7 @@
         <tbody>
             <c:forEach var="a" items="${appointments}">
             <tr>
-                <td><strong style="color:var(--primary);"><fmt:formatDate value="${a.slotDatetime}" type="time" pattern="HH:mm"/></strong></td>
+                <td><strong style="color:var(--primary);"><fmt:formatDate value="${a.slotDatetimeAsDate}" type="time" pattern="HH:mm"/></strong></td>
                 <td>
                     <div style="font-weight:600;">${a.patient.name}</div>
                     <div style="font-size:0.75rem; color:var(--text-muted);">#PAT-${a.patient.id}</div>

@@ -5,24 +5,29 @@
 <div class="card">
     <h2>Admin Dashboard</h2>
     
-    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 2rem;">
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-top: 2rem;">
         <div style="background: linear-gradient(135deg, #4F46E5 0%, #3b82f6 100%); color:white; padding: 2rem; border-radius:16px;">
             <h3 style="margin:0; font-weight:400; font-size:1.1rem;">Total Patients</h3>
             <p style="font-size:3rem; font-weight:700; margin:0.5rem 0 0 0;">${totalPatients}</p>
         </div>
         <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color:white; padding: 2rem; border-radius:16px;">
-            <h3 style="margin:0; font-weight:400; font-size:1.1rem;">System Health</h3>
-            <p style="font-size:3rem; font-weight:700; margin:0.5rem 0 0 0;">100%</p>
+            <h3 style="margin:0; font-weight:400; font-size:1.1rem;">Doctors</h3>
+            <p style="font-size:3rem; font-weight:700; margin:0.5rem 0 0 0;">${totalDoctors}</p>
         </div>
         <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color:white; padding: 2rem; border-radius:16px;">
-            <h3 style="margin:0; font-weight:400; font-size:1.1rem;">Active Modules</h3>
-            <p style="font-size:3rem; font-weight:700; margin:0.5rem 0 0 0;">4/4</p>
+            <h3 style="margin:0; font-weight:400; font-size:1.1rem;">Low Stock</h3>
+            <p style="font-size:3rem; font-weight:700; margin:0.5rem 0 0 0;">${lowStockCount}</p>
+        </div>
+        <div style="background: linear-gradient(135deg, #64748B 0%, #334155 100%); color:white; padding: 2rem; border-radius:16px;">
+            <h3 style="margin:0; font-weight:400; font-size:1.1rem;">Audit Events</h3>
+            <p style="font-size:3rem; font-weight:700; margin:0.5rem 0 0 0;">${auditCount}</p>
         </div>
     </div>
     
     <div style="margin-top:2rem;">
         <h3>Quick Links</h3>
         <a href="<c:url value='/admin/doctors'/>" class="btn btn-primary" style="margin-right:1rem;">Manage Doctors</a>
+        <a href="<c:url value='/admin/reports'/>" class="btn btn-secondary" style="margin-right:1rem;">Daily Reports</a>
         <a href="<c:url value='/admin/audit-log'/>" class="btn btn-secondary" style="margin-right:1rem;">Security Audit Logs</a>
         <a href="<c:url value='/billing/list'/>" class="btn" style="background:#10B981;color:white;">Hospital Revenue / Bills</a>
     </div>

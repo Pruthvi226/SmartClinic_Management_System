@@ -30,10 +30,14 @@ public class AppConfig {
     @Bean
     public DataSource dataSource() {
         BasicDataSource dataSource = new BasicDataSource();
-        dataSource.setDriverClassName(environment.getRequiredProperty("db.driver"));
-        dataSource.setUrl(environment.getRequiredProperty("db.url"));
-        dataSource.setUsername(environment.getRequiredProperty("db.username"));
-        dataSource.setPassword(environment.getRequiredProperty("db.password"));
+        dataSource.setDriverClassName(property("db.driver"));
+        dataSource.setUrl(property("db.url"));
+        dataSource.setUsername(property("db.username"));
+        dataSource.setPassword(property("db.password"));
+        dataSource.setInitialSize(integerProperty("db.pool.initialSize"));
+        dataSource.setMaxTotal(integerProperty("db.pool.maxTotal"));
+        dataSource.setMaxIdle(integerProperty("db.pool.maxIdle"));
+        dataSource.setMinIdle(integerProperty("db.pool.minIdle"));
         return dataSource;
     }
 
@@ -49,15 +53,23 @@ public class AppConfig {
 
     private Properties hibernateProperties() {
         Properties properties = new Properties();
-        properties.put("hibernate.dialect", environment.getRequiredProperty("hibernate.dialect"));
-        properties.put("hibernate.show_sql", environment.getRequiredProperty("hibernate.show_sql"));
-        properties.put("hibernate.format_sql", environment.getRequiredProperty("hibernate.format_sql"));
-        properties.put("hibernate.hbm2ddl.auto", environment.getRequiredProperty("hibernate.hbm2ddl.auto"));
-        properties.put("hibernate.cache.use_second_level_cache", environment.getRequiredProperty("hibernate.cache.use_second_level_cache"));
-        properties.put("hibernate.cache.use_query_cache", environment.getRequiredProperty("hibernate.cache.use_query_cache"));
-        properties.put("hibernate.cache.region.factory_class", environment.getRequiredProperty("hibernate.cache.region.factory_class"));
+        properties.put("hibernate.dialect", property("hibernate.dialect"));
+        properties.put("hibernate.show_sql", property("hibernate.show_sql"));
+        properties.put("hibernate.format_sql", property("hibernate.format_sql"));
+        properties.put("hibernate.hbm2ddl.auto", property("hibernate.hbm2ddl.auto"));
+        properties.put("hibernate.cache.use_second_level_cache", property("hibernate.cache.use_second_level_cache"));
+        properties.put("hibernate.cache.use_query_cache", property("hibernate.cache.use_query_cache"));
+        properties.put("hibernate.cache.region.factory_class", property("hibernate.cache.region.factory_class"));
         
         return properties;
+    }
+
+    private String property(String key) {
+        return environment.resolveRequiredPlaceholders(environment.getRequiredProperty(key));
+    }
+
+    private int integerProperty(String key) {
+        return Integer.parseInt(property(key));
     }
 
     @Bean

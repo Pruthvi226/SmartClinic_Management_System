@@ -23,9 +23,11 @@ A comprehensive Spring MVC-based Hospital Management System with patient managem
 
 - Register new patients with complete health information
 - View and update patient profiles
+- Receptionist patient edit workflow for correcting demographics, contact details, address, and allergy notes
 - Search patients by name or contact details
 - Track patient appointment history
 - Blood group and medical history records
+- Capture allergy information and surface medicine warnings during consultation/pharmacy review
 
 ### Doctor Management
 
@@ -33,7 +35,11 @@ A comprehensive Spring MVC-based Hospital Management System with patient managem
 - Define specializations and availability
 - Set appointment slot duration
 - Manage working days and schedule
+- Edit doctor availability and slot duration from the admin UI
+- Block doctor leave/holiday dates so no slots are offered on unavailable days
 - View upcoming appointments
+- Doctor self-profile page
+- Doctor consultation workspace with clinical templates, vitals, diagnosis tags, lab orders, follow-up days, risk flags, prescription favorites, draft saving, and completed consultation history
 
 ### Appointment Scheduling
 
@@ -41,25 +47,50 @@ A comprehensive Spring MVC-based Hospital Management System with patient managem
 - Check doctor availability by date and time
 - Manage appointment priorities (Normal, Senior, Emergency)
 - Update appointment status (Scheduled, Completed, Cancelled)
+- Reschedule or cancel active appointments from the live queue
+- Add patients to a waitlist when slots are unavailable
+- Notify matching waitlist entries when a cancellation releases a slot
+- Emergency override booking for urgent triage
+- Check-in, no-show, queue token numbers, calendar view, and mock SMS reminder logs
 - View patient and doctor appointment queues
 
 ### Prescription Management
 
 - Create prescriptions during appointments
 - Manage prescription items with dosage information
+- Capture prescribed quantity for pharmacy stock deduction
+- Download prescription PDF slips
 - Track prescription history by patient
 - Issue date tracking
+
+### Pharmacy Inventory
+
+- Maintain medicine stock, reorder levels, categories, and unit prices
+- Highlight low-stock medicines for quick restocking
+- Dispense pending prescriptions and reduce inventory quantities
+- Search inventory by medicine name or category
+- Track medicine batch number, expiry date, supplier, substitution suggestion, and stock movement history
+- Generate a purchase-order draft for low-stock and soon-expiring medicines
 
 ### Billing & Payments
 
 - Auto-generate bills for appointments
 - Apply taxes and discounts
-- Track payment status
+- Track payment status, payment mode, paid amount, balance, and transaction reference
+- Track insurance provider, claim number, claim status, authorized discounts, refunds, and receipt number
+- Download invoice PDFs and payment receipt PDFs
+- Support pending, partial, paid, refunded, and failed payment states
 - View billing history and summaries
 
 ### Audit & Security
 
 - Complete audit logging for all operations
+- Appointment timelines for booking, reschedule, cancellation, consultation, and dispensing events
+- Filter audit logs by action, user, entity, and date range
+- Admin dashboard metrics for patients, doctors, low-stock inventory, and audit volume
+- Daily report dashboard for appointments, revenue, pending bills, and low-stock medicines
+- Admin user management, department/specialization management, system settings, revenue analytics, and CSV exports
+- Pagination and filtering on major operational lists
 - Role-based access control (ADMIN, DOCTOR, RECEPTIONIST, PHARMACIST)
 - Spring Security integration
 - BCrypt password encryption
@@ -118,7 +149,7 @@ A comprehensive Spring MVC-based Hospital Management System with patient managem
 3. **Build and run**
 
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
 
 4. **Access the application**
@@ -203,17 +234,19 @@ cp target/smart-clinic-1.0-SNAPSHOT.war $CATALINA_HOME/webapps/ROOT.war
 
 ```bash
 # Build and start services
-docker-compose up --build
+docker compose up --build
 
 # Stop services
-docker-compose down
+docker compose down
 
 # View logs
-docker-compose logs -f app
+docker compose logs -f app
 
 # Access MySQL from container
-docker exec -it smartclinic-db mysql -u root -p smartclinic
+docker compose exec db mysql -u root -p smartclinic
 ```
+
+If port `8080` or `3308` is already busy, change `APP_PORT` or `DB_HOST_PORT` in `.env`, then rerun Docker Compose.
 
 ### Production Deployment
 
@@ -225,16 +258,16 @@ docker exec -it smartclinic-db mysql -u root -p smartclinic
    SPRING_PROFILES_ACTIVE=prod
    ```
 
-2. **Use production docker-compose:**
+2. **Use production Docker Compose:**
 
    ```bash
-   docker-compose -f docker-compose.yml up -d
+   docker compose -f docker-compose.yml up -d
    ```
 
 3. **Verify services:**
    ```bash
-   docker-compose ps
-   docker logs smartclinic-app
+   docker compose ps
+   docker compose logs app
    ```
 
 ---
@@ -427,7 +460,7 @@ Response: { status: "success", message: "Billing record generated successfully",
 #### Update payment status
 
 ```
-PUT /api/billing/{id}/payment-status?status=COMPLETED
+PUT /api/billing/{id}/payment-status?status=PAID
 Response: { status: "success", message: "Payment status updated successfully", data: {...} }
 ```
 
@@ -504,9 +537,12 @@ Response: { status: "success", message: "Prescription created successfully", dat
 | `users`              | User accounts with roles (ADMIN, DOCTOR, RECEPTIONIST, PHARMACIST) |
 | `patients`           | Patient information and demographics                               |
 | `doctors`            | Doctor specialization and availability                             |
+| `doctor_leaves`      | Doctor leave and holiday dates that block appointment slots        |
 | `appointments`       | Appointment records with status and priority                       |
+| `appointment_waitlist` | Waitlist entries for unavailable doctor/date combinations        |
 | `prescriptions`      | Prescription records                                               |
 | `prescription_items` | Individual medicine items in prescriptions                         |
+| `medicine_inventory` | Pharmacy stock levels, reorder thresholds, and unit prices         |
 | `billing`            | Billing records and payment status                                 |
 | `audit_log`          | Audit trail for all user actions                                   |
 
@@ -515,10 +551,14 @@ Response: { status: "success", message: "Prescription created successfully", dat
 - **User → Doctor** (One-to-One)
 - **Patient → Appointment** (One-to-Many)
 - **Doctor → Appointment** (One-to-Many)
+- **Doctor → Doctor Leave** (One-to-Many)
+- **Doctor → Waitlist Entry** (One-to-Many)
+- **Patient → Waitlist Entry** (One-to-Many)
 - **Doctor → Prescription** (One-to-Many)
 - **Patient → Prescription** (One-to-Many)
 - **Appointment → Prescription** (One-to-One)
 - **Appointment → Billing** (One-to-One)
+- **Prescription → Prescription Item** (One-to-Many)
 - **User → Audit Log** (One-to-Many)
 
 ---
@@ -540,7 +580,6 @@ DB_PASSWORD=secure_password
 # Application
 SPRING_PROFILES_ACTIVE=prod
 APP_PORT=8080
-DB_CONTAINER_PORT=3306
 DB_HOST_PORT=3308
 ```
 
@@ -555,7 +594,7 @@ DB_HOST_PORT=3308
 
 ```bash
 export SPRING_PROFILES_ACTIVE=prod
-mvn spring-boot:run
+mvn jetty:run
 ```
 
 ---
@@ -590,19 +629,19 @@ mvn -version
 **Error: "Port already in use"**
 
 ```bash
-# The demo app is fixed to host port 8080.
-# Stop the process using 8080, then rerun Docker Compose.
+# Change APP_PORT or DB_HOST_PORT in .env, then rerun Docker Compose.
+APP_PORT=8084
+DB_HOST_PORT=3310
 ```
 
 **Error: "Database connection timeout in Docker"**
 
 ```bash
 # Check MySQL logs
-docker logs smartclinic-db
+docker compose logs db
 
-# Verify network
-docker network ls
-docker inspect smart_hospital_management_default
+# Verify containers
+docker compose ps
 ```
 
 ### Application Not Starting
@@ -614,7 +653,7 @@ docker inspect smart_hospital_management_default
 mvn jetty:run 2>&1 | tail -50
 
 # Docker
-docker logs smartclinic-app
+docker compose logs app
 
 # Check port
 netstat -tuln | grep 8080

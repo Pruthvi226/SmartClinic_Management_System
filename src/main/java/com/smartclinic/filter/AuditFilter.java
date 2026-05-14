@@ -4,6 +4,8 @@ import com.smartclinic.model.AuditLog;
 import com.smartclinic.model.User;
 import com.smartclinic.service.AuditLogService;
 import com.smartclinic.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +18,8 @@ import java.io.IOException;
 
 @WebFilter(urlPatterns = "/*")
 public class AuditFilter implements Filter {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuditFilter.class);
 
     private AuditLogService auditLogService;
     private UserService userService;
@@ -53,9 +57,8 @@ public class AuditFilter implements Filter {
             // Assuming business logic is fine with saving log here.
             try {
                 auditLogService.save(log);
-            } catch(Exception e) {
-                // Just swallow for now to not break the request flow
-                e.printStackTrace();
+            } catch (Exception e) {
+                logger.warn("Audit log write failed for {}", uri, e);
             }
         }
 

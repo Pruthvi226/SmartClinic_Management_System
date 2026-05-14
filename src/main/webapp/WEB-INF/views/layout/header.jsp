@@ -8,8 +8,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartClinic | Hospital Management</title>
     <link rel="stylesheet" href="<c:url value='/resources/css/style.css'/>">
+    <sec:csrfMetaTags />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>window.smartClinicContextPath = '${pageContext.request.contextPath}';</script>
+    <script>
+        window.smartClinicContextPath = '${pageContext.request.contextPath}';
+        document.addEventListener('DOMContentLoaded', function() {
+            const tokenMeta = document.querySelector('meta[name="_csrf"]');
+            const parameterMeta = document.querySelector('meta[name="_csrf_parameter"]');
+            if (!tokenMeta || !parameterMeta) return;
+
+            document.querySelectorAll('form').forEach(function(form) {
+                if ((form.method || '').toLowerCase() !== 'post') return;
+                if (form.querySelector('input[name="' + parameterMeta.content + '"]')) return;
+
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = parameterMeta.content;
+                csrfInput.value = tokenMeta.content;
+                form.appendChild(csrfInput);
+            });
+        });
+    </script>
     <script src="<c:url value='/resources/js/app.js'/>"></script>
 </head>
 <body>
@@ -36,6 +55,10 @@
                     <a href="<c:url value='/appointments/queue'/>">
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                         Queue
+                    </a>
+                    <a href="<c:url value='/appointments/waitlist'/>">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
+                        Waitlist
                     </a>
                 </sec:authorize>
                 <sec:authorize access="hasAuthority('DOCTOR')">

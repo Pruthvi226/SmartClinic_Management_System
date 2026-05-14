@@ -63,6 +63,18 @@
             </c:if>
         </tbody>
     </table>
+
+    <c:if test="${pageSlice.totalPages > 1}">
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem;">
+            <c:if test="${pageSlice.hasPrevious}">
+                <a class="btn btn-secondary" href="<c:url value='/patients/search?page=${pageSlice.previousPage}&keyword=${keyword}'/>">Previous</a>
+            </c:if>
+            <span style="align-self:center; color:var(--text-muted);">Page ${pageSlice.currentPage} of ${pageSlice.totalPages} (${pageSlice.totalItems} patients)</span>
+            <c:if test="${pageSlice.hasNext}">
+                <a class="btn btn-secondary" href="<c:url value='/patients/search?page=${pageSlice.nextPage}&keyword=${keyword}'/>">Next</a>
+            </c:if>
+        </div>
+    </c:if>
 </div>
 
 <jsp:include page="../layout/footer.jsp" />

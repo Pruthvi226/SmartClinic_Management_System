@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 @Transactional
@@ -26,8 +27,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User findById(Long id) {
+        return userDao.findById(id);
+    }
+
+    @Override
     public User findByEmail(String email) {
         return userDao.findByEmail(email);
+    }
+
+    @Override
+    public List<User> findAll() {
+        return userDao.findAll();
+    }
+
+    @Override
+    public void toggleActive(Long id) {
+        User user = userDao.findById(id);
+        if (user != null) {
+            user.setActive(!user.isActive());
+            userDao.update(user);
+        }
     }
 
     @Override
@@ -37,7 +57,7 @@ public class UserServiceImpl implements UserService {
             throw new UsernameNotFoundException("Invalid username or password.");
         }
         return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(),
-                mapRolesToAuthorities(user.getRole()));
+                user.isActive(), true, true, true, mapRolesToAuthorities(user.getRole()));
     }
 
     private Collection<? extends GrantedAuthority> mapRolesToAuthorities(User.Role role) {

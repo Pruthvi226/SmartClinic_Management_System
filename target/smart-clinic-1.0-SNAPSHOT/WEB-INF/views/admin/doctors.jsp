@@ -8,6 +8,12 @@
         <a href="<c:url value='/admin/doctors/add'/>" class="btn btn-primary">+ Add New Doctor</a>
     </div>
 
+    <c:if test="${param.updated != null}">
+        <div style="color:#16A34A; background:#F0FDF4; border:1px solid #DCFCE7; padding:1rem; border-radius:8px; margin-bottom:1rem;">
+            Doctor availability updated successfully.
+        </div>
+    </c:if>
+
     <table>
         <thead>
             <tr>
@@ -17,6 +23,7 @@
                 <th>Specialization</th>
                 <th>Available Days</th>
                 <th>Slot Duration</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -28,10 +35,14 @@
                 <td>${doctor.specialization}</td>
                 <td>${doctor.availableDays}</td>
                 <td>${doctor.slotDurationMins} mins</td>
+                <td>
+                    <a href="<c:url value='/admin/doctors/${doctor.id}/edit'/>" class="btn btn-secondary" style="padding:0.35rem 0.7rem; font-size:0.8rem;">Edit</a>
+                    <a href="<c:url value='/admin/doctors/${doctor.id}/leaves'/>" class="btn btn-secondary" style="padding:0.35rem 0.7rem; font-size:0.8rem;">Leaves</a>
+                </td>
             </tr>
             </c:forEach>
             <c:if test="${empty doctors}">
-            <tr><td colspan="6">No doctors found in system.</td></tr>
+            <tr><td colspan="7">No doctors found in system.</td></tr>
             </c:if>
         </tbody>
     </table>

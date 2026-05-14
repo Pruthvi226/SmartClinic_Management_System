@@ -64,6 +64,26 @@
             <select name="slotTime" id="slotTimeSelect" class="form-control" required disabled>
                 <option value="">Select Date/Doctor first</option>
             </select>
+            <div id="waitlistHint" style="display:none; margin-top:0.8rem; color:#92400E; background:#FFFBEB; border:1px solid #FDE68A; padding:0.8rem; border-radius:8px;">
+                No slots are open for that date. <a id="waitlistLink" href="<c:url value='/appointments/waitlist'/>" style="font-weight:700; color:#92400E;">Add patient to waitlist</a>.
+            </div>
+        </div>
+
+        <div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:1rem;">
+            <label style="display:flex; gap:0.5rem; align-items:center; font-weight:700; color:#991B1B;">
+                <input type="checkbox" name="emergencyOverride" id="emergencyOverride" />
+                Emergency override
+            </label>
+            <div id="overrideFields" style="display:none; margin-top:1rem; grid-template-columns:1fr; gap:1rem;">
+                <div class="form-group">
+                    <label>Override Slot Time</label>
+                    <input type="datetime-local" name="overrideSlotTime" id="overrideSlotTime" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>Override Reason</label>
+                    <input type="text" name="overrideReason" class="form-control" placeholder="Emergency triage approved by reception" />
+                </div>
+            </div>
         </div>
         
         <div style="margin-top:2rem; display:flex; gap:1rem;">
@@ -94,7 +114,11 @@ $(document).ready(function() {
                 let html = '';
                 if (slots.length === 0) {
                     html = '<option value="">No slots available for this date</option>';
+                    const patientId = $('input[name="patientId"]').val() || $('select[name="patientId"]').val() || '';
+                    $('#waitlistLink').attr('href', '<c:url value="/appointments/waitlist"/>' + '?patientId=' + patientId + '&doctorId=' + docId + '&date=' + date + '&priority=' + priority);
+                    $('#waitlistHint').show();
                 } else {
+                    $('#waitlistHint').hide();
                     slots.forEach(s => {
                         const time = new Date(s).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                         html += '<option value="' + s + '">' + time + '</option>';
@@ -106,6 +130,16 @@ $(document).ready(function() {
     }
     
     $('#doctorSelect, #dateSelect, #prioritySelect').change(updateSlots);
+
+    $('#emergencyOverride').change(function() {
+        const active = $(this).is(':checked');
+        $('#overrideFields').css('display', active ? 'grid' : 'none');
+        $('#overrideSlotTime').prop('required', active);
+        $('#slotTimeSelect').prop('required', !active);
+        if (active) {
+            $('#prioritySelect').val('EMERGENCY');
+        }
+    });
     
     // Initial update if fields are pre-filled
     if ($('#doctorSelect').val() && $('#dateSelect').val()) updateSlots();

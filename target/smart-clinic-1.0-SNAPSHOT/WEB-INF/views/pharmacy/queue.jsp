@@ -13,11 +13,28 @@
 <div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <h2 style="margin:0">Pharmacy Dispensation Queue</h2>
-        <div style="background:var(--secondary); color:white; padding:0.5rem 1rem; border-radius:12px; font-weight:700; font-size:0.875rem; display:flex; align-items:center; gap:0.5rem;">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
-            LIVE
-        </div>
+        <a href="<c:url value='/pharmacy/inventory'/>" class="btn btn-secondary">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></svg>
+            Inventory
+        </a>
     </div>
+
+    <c:if test="${param.dispensed != null}">
+        <div style="color:#16A34A; background:#F0FDF4; border:1px solid #DCFCE7; padding:1rem; border-radius:8px; margin-top:1.5rem;">
+            Prescription dispensed and inventory stock updated.
+        </div>
+    </c:if>
+    <c:if test="${param.error != null}">
+        <div style="color:#991B1B; background:#FEF2F2; border:1px solid #FECACA; padding:1rem; border-radius:8px; margin-top:1.5rem;">
+            Could not dispense. Check inventory stock and medicine names, then try again.
+        </div>
+    </c:if>
+    <c:if test="${not empty lowStockMedicines}">
+        <div style="color:#92400E; background:#FFFBEB; border:1px solid #FDE68A; padding:1rem; border-radius:8px; margin-top:1.5rem;">
+            <strong>${lowStockMedicines.size()} medicine(s) below reorder level.</strong>
+            <a href="<c:url value='/pharmacy/inventory'/>" style="color:#92400E; font-weight:700;">Review inventory</a>
+        </div>
+    </c:if>
 
     <table>
         <thead>
@@ -26,7 +43,7 @@
                 <th>Patient Name</th>
                 <th>Doctor</th>
                 <th>Issued At</th>
-                <th>Items Count</th>
+                <th>Medicines</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -34,15 +51,30 @@
             <c:forEach var="p" items="${prescriptions}">
             <tr>
                 <td><strong style="color:var(--text-muted);">#PRE-${p.id}</strong></td>
-                <td><strong>${p.patient.name}</strong></td>
+                <td>
+                    <strong>${p.patient.name}</strong>
+                    <c:if test="${not empty p.patient.allergies && p.patient.allergies != 'None'}">
+                        <div style="color:#991B1B; font-size:0.75rem; font-weight:700;">Allergies: ${p.patient.allergies}</div>
+                    </c:if>
+                </td>
                 <td>Dr. ${p.doctor.user.name}</td>
                 <td><fmt:formatDate value="${p.issuedAt}" type="both" pattern="dd MMM yyyy, HH:mm"/></td>
-                <td><span class="badge" style="background:#E2E8F0; color:var(--text-dark);">${p.items.size()} Items</span></td>
                 <td>
-                    <button class="btn btn-primary" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="alert('Dispense action completed.')">
+                    <c:forEach var="item" items="${p.items}">
+                        <div style="font-size:0.875rem; margin-bottom:0.35rem;">
+                            <strong>${item.medicineName}</strong>
+                            <span style="color:var(--text-muted);">x ${item.quantity} - ${item.dosage}, ${item.duration}</span>
+                        </div>
+                    </c:forEach>
+                </td>
+                <td>
+                    <form action="<c:url value='/pharmacy/prescriptions/${p.id}/dispense'/>" method="post" style="margin:0;" onsubmit="return confirm('Dispense this prescription and reduce stock?');">
+                        <button type="submit" class="btn btn-primary" style="padding:0.4rem 0.8rem; font-size:0.8rem;">
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
-                        View & Dispense
-                    </button>
+                            Dispense
+                        </button>
+                    </form>
+                    <a href="<c:url value='/prescriptions/download/${p.id}'/>" class="btn btn-secondary" style="padding:0.35rem 0.7rem; font-size:0.8rem; margin-top:0.4rem;">PDF</a>
                 </td>
             </tr>
             </c:forEach>

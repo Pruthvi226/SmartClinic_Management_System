@@ -7,6 +7,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -18,6 +20,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/appointments")
 public class AppointmentApiController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AppointmentApiController.class);
 
     @Autowired
     private AppointmentService appointmentService;
@@ -31,9 +35,9 @@ public class AppointmentApiController {
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam("priority") Appointment.Priority priority) {
         try {
-            System.out.println("API: Fetching slots for doctor: " + doctorId + " on date: " + date);
+            logger.debug("Fetching slots for doctor {} on {}", doctorId, date);
             List<LocalDateTime> slots = appointmentService.getAvailableSlots(doctorId, date, priority);
-            System.out.println("API: Found " + slots.size() + " slots");
+            logger.debug("Found {} slots for doctor {} on {}", slots.size(), doctorId, date);
 
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");

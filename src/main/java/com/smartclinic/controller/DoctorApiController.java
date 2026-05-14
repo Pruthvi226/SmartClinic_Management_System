@@ -123,7 +123,7 @@ public class DoctorApiController {
             if (doctorDetails.getAvailableDays() != null) {
                 doctor.setAvailableDays(doctorDetails.getAvailableDays());
             }
-            if (doctorDetails.getSlotDurationMins() > 0) {
+            if (doctorDetails.getSlotDurationMins() != null && doctorDetails.getSlotDurationMins() > 0) {
                 doctor.setSlotDurationMins(doctorDetails.getSlotDurationMins());
             }
 

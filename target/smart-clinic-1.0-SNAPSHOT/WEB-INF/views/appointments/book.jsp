@@ -64,6 +64,9 @@
             <select name="slotTime" id="slotTimeSelect" class="form-control" required disabled>
                 <option value="">Select Date/Doctor first</option>
             </select>
+            <div id="waitlistHint" style="display:none; margin-top:0.8rem; color:#92400E; background:#FFFBEB; border:1px solid #FDE68A; padding:0.8rem; border-radius:8px;">
+                No slots are open for that date. <a id="waitlistLink" href="<c:url value='/appointments/waitlist'/>" style="font-weight:700; color:#92400E;">Add patient to waitlist</a>.
+            </div>
         </div>
         
         <div style="margin-top:2rem; display:flex; gap:1rem;">
@@ -85,18 +88,23 @@ $(document).ready(function() {
         
         if (docId && date && date.length === 10) {
             $('#slotTimeSelect').prop('disabled', false).html('<option>Checking availability...</option>');
-            $.get('<c:url value="/api/slots"/>', {
+            $.get('<c:url value="/api/appointments/slots"/>', {
                 doctorId: docId,
                 date: date,
                 priority: priority
-            }, function(slots) {
+            }, function(response) {
+                const slots = response.data || response;
                 let html = '';
                 if (slots.length === 0) {
                     html = '<option value="">No slots available for this date</option>';
+                    const patientId = $('input[name="patientId"]').val() || $('select[name="patientId"]').val() || '';
+                    $('#waitlistLink').attr('href', '<c:url value="/appointments/waitlist"/>' + '?patientId=' + patientId + '&doctorId=' + docId + '&date=' + date + '&priority=' + priority);
+                    $('#waitlistHint').show();
                 } else {
+                    $('#waitlistHint').hide();
                     slots.forEach(s => {
                         const time = new Date(s).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        html += `<option value="${s}">${time}</option>`;
+                        html += '<option value="' + s + '">' + time + '</option>';
                     });
                 }
                 $('#slotTimeSelect').html(html);

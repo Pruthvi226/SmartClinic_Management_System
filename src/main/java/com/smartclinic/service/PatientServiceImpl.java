@@ -21,6 +21,11 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
+    public void updatePatient(Patient patient) {
+        patientDao.save(patient);
+    }
+
+    @Override
     public Patient findById(Long id) {
         return patientDao.findById(id);
     }

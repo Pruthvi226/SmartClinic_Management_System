@@ -47,6 +47,10 @@ public class Patient {
     @Size(max = 1000, message = "Address must not exceed 1000 characters")
     private String address;
 
+    @Column(columnDefinition = "TEXT")
+    @Size(max = 1000, message = "Allergies must not exceed 1000 characters")
+    private String allergies;
+
     @Column(name = "registered_at", insertable = false, updatable = false)
     private Timestamp registeredAt;
 
@@ -120,6 +124,14 @@ public class Patient {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getAllergies() {
+        return allergies;
+    }
+
+    public void setAllergies(String allergies) {
+        this.allergies = allergies;
     }
 
     public Timestamp getRegisteredAt() {

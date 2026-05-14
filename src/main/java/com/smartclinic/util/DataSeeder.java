@@ -3,6 +3,7 @@ package com.smartclinic.util;
 import com.smartclinic.model.Appointment;
 import com.smartclinic.model.Billing;
 import com.smartclinic.model.Doctor;
+import com.smartclinic.model.MedicineInventory;
 import com.smartclinic.model.Patient;
 import com.smartclinic.model.Prescription;
 import com.smartclinic.model.PrescriptionItem;
@@ -10,6 +11,7 @@ import com.smartclinic.model.User;
 import com.smartclinic.service.AppointmentService;
 import com.smartclinic.service.BillingService;
 import com.smartclinic.service.DoctorService;
+import com.smartclinic.service.MedicineInventoryService;
 import com.smartclinic.service.PatientService;
 import com.smartclinic.service.PrescriptionService;
 import com.smartclinic.service.UserService;
@@ -18,8 +20,11 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Date;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -27,6 +32,8 @@ import java.util.List;
 
 @Component
 public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
+
+    private static final Logger logger = LoggerFactory.getLogger(DataSeeder.class);
 
     @Autowired
     private UserService userService;
@@ -45,6 +52,9 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
 
     @Autowired
     private BillingService billingService;
+
+    @Autowired
+    private MedicineInventoryService medicineInventoryService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -68,10 +78,11 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
                 "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY", 30);
         Doctor cardioDoctor = upsertDoctor(cardioUser, "Cardiology", "MONDAY,WEDNESDAY,FRIDAY", 30);
 
+        seedMedicineInventory();
         List<Patient> patients = seedPatients();
         seedAppointmentsAndClinicalData(patients, generalDoctor, cardioDoctor);
 
-        System.out.println("Demo users ready. Admin login: " + admin.getEmail() + " / admin123");
+        logger.info("Demo users ready. Admin login: {} / admin123", admin.getEmail());
     }
 
     private User upsertUser(String name, String email, String rawPassword, User.Role role) {
@@ -79,11 +90,12 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
         if (user == null) {
             user = new User();
             user.setEmail(email);
+            user.setPassword(passwordEncoder.encode(rawPassword));
         }
 
         user.setName(name);
-        user.setPassword(passwordEncoder.encode(rawPassword));
         user.setRole(role);
+        user.setActive(true);
         userService.save(user);
         return userService.findByEmail(email);
     }
@@ -93,32 +105,66 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
         if (doctor == null) {
             doctor = new Doctor();
             doctor.setUser(user);
+            doctor.setSpecialization(specialization);
+            doctor.setAvailableDays(availableDays);
+            doctor.setSlotDurationMins(slotDurationMins);
+            doctorService.save(doctor);
+            return doctorService.findByUserId(user.getId());
         }
 
-        doctor.setSpecialization(specialization);
-        doctor.setAvailableDays(availableDays);
-        doctor.setSlotDurationMins(slotDurationMins);
+        if (doctor.getSpecialization() == null || doctor.getSpecialization().trim().isEmpty()) {
+            doctor.setSpecialization(specialization);
+        }
+        if (doctor.getAvailableDays() == null || doctor.getAvailableDays().trim().isEmpty()) {
+            doctor.setAvailableDays(availableDays);
+        }
+        if (doctor.getSlotDurationMins() == null || doctor.getSlotDurationMins() <= 0) {
+            doctor.setSlotDurationMins(slotDurationMins);
+        }
         doctorService.save(doctor);
         return doctorService.findByUserId(user.getId());
     }
 
+    private void seedMedicineInventory() {
+        upsertMedicine("Aspirin", "Cardiology", 120, 20, "2.00");
+        upsertMedicine("Atorvastatin", "Cardiology", 8, 10, "12.00");
+        upsertMedicine("Pantoprazole", "Gastro", 45, 15, "6.00");
+        upsertMedicine("Paracetamol", "General", 150, 25, "3.00");
+        upsertMedicine("Amoxicillin", "Antibiotic", 25, 10, "8.00");
+    }
+
+    private void upsertMedicine(String name, String category, int stockQuantity, int reorderLevel, String unitPrice) {
+        MedicineInventory medicine = medicineInventoryService.findByName(name);
+        if (medicine != null) {
+            return;
+        }
+
+        medicine = new MedicineInventory();
+        medicine.setMedicineName(name);
+        medicine.setCategory(category);
+        medicine.setStockQuantity(stockQuantity);
+        medicine.setReorderLevel(reorderLevel);
+        medicine.setUnitPrice(new BigDecimal(unitPrice));
+        medicineInventoryService.save(medicine);
+    }
+
     private List<Patient> seedPatients() {
         Patient aarav = upsertPatient("Aarav Mehta", "1992-08-12", 33, "MALE",
-                "+91 98765 43210", "aarav.mehta@example.com", "O+", "Bandra West, Mumbai");
+                "+91 98765 43210", "aarav.mehta@example.com", "O+", "Bandra West, Mumbai", "Penicillin");
         Patient neha = upsertPatient("Neha Sharma", "1988-03-24", 38, "FEMALE",
-                "+91 99887 77665", "neha.sharma@example.com", "A+", "Indiranagar, Bengaluru");
+                "+91 99887 77665", "neha.sharma@example.com", "A+", "Indiranagar, Bengaluru", "Aspirin");
         Patient rohan = upsertPatient("Rohan Iyer", "1956-11-05", 69, "MALE",
-                "+91 91234 56789", "rohan.iyer@example.com", "B+", "Adyar, Chennai");
+                "+91 91234 56789", "rohan.iyer@example.com", "B+", "Adyar, Chennai", "None");
         Patient fatima = upsertPatient("Fatima Khan", "2001-01-17", 25, "FEMALE",
-                "+91 90123 45678", "fatima.khan@example.com", "AB+", "Koregaon Park, Pune");
+                "+91 90123 45678", "fatima.khan@example.com", "AB+", "Koregaon Park, Pune", "Sulfa");
         Patient vikram = upsertPatient("Vikram Rao", "1978-07-30", 47, "MALE",
-                "+91 93456 78120", "vikram.rao@example.com", "O-", "Jubilee Hills, Hyderabad");
+                "+91 93456 78120", "vikram.rao@example.com", "O-", "Jubilee Hills, Hyderabad", "None");
 
         return Arrays.asList(aarav, neha, rohan, fatima, vikram);
     }
 
     private Patient upsertPatient(String name, String dob, int age, String gender, String phone,
-            String email, String bloodGroup, String address) {
+            String email, String bloodGroup, String address, String allergies) {
         Patient patient = patientService.findAll().stream()
                 .filter(p -> email.equalsIgnoreCase(p.getEmail()))
                 .findFirst()
@@ -132,6 +178,7 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
         patient.setEmail(email);
         patient.setBloodGroup(bloodGroup);
         patient.setAddress(address);
+        patient.setAllergies(allergies);
         patientService.registerPatient(patient);
 
         return patientService.findAll().stream()
@@ -189,20 +236,21 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
         prescription.setPatient(appointment.getPatient());
         prescription.setDiagnosis("Stable angina symptoms reviewed. ECG advised, lipid profile requested, and medication started.");
 
-        PrescriptionItem aspirin = medicine("Aspirin", "75 mg", "30 days", "Take once daily after breakfast");
-        PrescriptionItem statin = medicine("Atorvastatin", "10 mg", "30 days", "Take once at night");
-        PrescriptionItem pantoprazole = medicine("Pantoprazole", "40 mg", "14 days", "Take before breakfast");
+        PrescriptionItem aspirin = medicine("Aspirin", "75 mg", "30 days", 1, "Take once daily after breakfast");
+        PrescriptionItem statin = medicine("Atorvastatin", "10 mg", "30 days", 1, "Take once at night");
+        PrescriptionItem pantoprazole = medicine("Pantoprazole", "40 mg", "14 days", 1, "Take before breakfast");
 
         prescription.setItems(Arrays.asList(aspirin, statin, pantoprazole));
         prescription.getItems().forEach(item -> item.setPrescription(prescription));
         prescriptionService.createPrescription(prescription);
     }
 
-    private PrescriptionItem medicine(String name, String dosage, String duration, String instructions) {
+    private PrescriptionItem medicine(String name, String dosage, String duration, int quantity, String instructions) {
         PrescriptionItem item = new PrescriptionItem();
         item.setMedicineName(name);
         item.setDosage(dosage);
         item.setDuration(duration);
+        item.setQuantity(quantity);
         item.setInstructions(instructions);
         return item;
     }
@@ -214,7 +262,7 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
 
         Billing bill = billingService.generateBill(appointment.getId());
         if (bill != null && bill.getId() != null) {
-            billingService.updatePaymentStatus(bill.getId(), "PAID");
+            billingService.updatePayment(bill.getId(), "PAID", "UPI", bill.getTotal(), "DEMO-UPI-001");
         }
     }
 }

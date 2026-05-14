@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class SlotAllocator {
@@ -17,6 +18,10 @@ public class SlotAllocator {
     private static final LocalTime CLINIC_END = LocalTime.of(17, 0);
 
     public static List<LocalDateTime> allocateSlots(Doctor doctor, LocalDate date, Priority priority, List<Appointment> bookedAppointments) {
+        if (!isDoctorAvailableOn(doctor, date)) {
+            return new ArrayList<>();
+        }
+
         List<LocalDateTime> allPossibleSlots = new ArrayList<>();
         int slotDuration = doctor.getSlotDurationMins() != null ? doctor.getSlotDurationMins() : 30;
 
@@ -71,5 +76,16 @@ public class SlotAllocator {
         }
 
         return recommended;
+    }
+
+    private static boolean isDoctorAvailableOn(Doctor doctor, LocalDate date) {
+        if (doctor == null || date == null || doctor.getAvailableDays() == null) {
+            return false;
+        }
+
+        String requestedDay = date.getDayOfWeek().name();
+        return java.util.Arrays.stream(doctor.getAvailableDays().split(","))
+                .map(day -> day.trim().toUpperCase(Locale.ROOT))
+                .anyMatch(requestedDay::equals);
     }
 }

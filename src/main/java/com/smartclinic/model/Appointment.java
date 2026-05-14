@@ -48,6 +48,12 @@ public class Appointment {
     @Size(max = 1000, message = "Notes must not exceed 1000 characters")
     private String notes;
 
+    @Column(name = "queue_state", length = 50)
+    private String queueState = "WAITING";
+
+    @Column(name = "token_number", length = 30)
+    private String tokenNumber;
+
     public enum Status {
         SCHEDULED, COMPLETED, CANCELLED
     }
@@ -114,6 +120,26 @@ public class Appointment {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getQueueState() {
+        return queueState == null || queueState.trim().isEmpty() ? "WAITING" : queueState;
+    }
+
+    public void setQueueState(String queueState) {
+        this.queueState = queueState;
+    }
+
+    public String getQueueStateLabel() {
+        return getQueueState().replace('_', ' ');
+    }
+
+    public String getTokenNumber() {
+        return tokenNumber == null || tokenNumber.trim().isEmpty() ? "Q" + (id == null ? "" : id) : tokenNumber;
+    }
+
+    public void setTokenNumber(String tokenNumber) {
+        this.tokenNumber = tokenNumber;
     }
 
     @Override

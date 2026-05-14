@@ -19,6 +19,7 @@
             <div>
                 <h2 style="margin:0">${patient.name}</h2>
                 <span style="color:var(--text-muted); font-size:0.875rem;">Medical Record #PAT-${patient.id} | ${patient.gender}, ${patient.age} years | Blood: ${patient.bloodGroup}</span>
+                <div style="margin-top:0.35rem; color:#991B1B; font-size:0.875rem; font-weight:600;">Allergies: ${empty patient.allergies ? 'None recorded' : patient.allergies}</div>
             </div>
         </div>
         <a href="<c:url value='/appointments/book?patientId=${patient.id}'/>" class="btn btn-primary">
@@ -35,18 +36,19 @@
             </h3>
             <table>
                 <thead>
-                    <tr><th>Date & Time</th><th>Doctor</th><th>Status</th></tr>
+                    <tr><th>Date & Time</th><th>Doctor</th><th>Status</th><th>Timeline</th></tr>
                 </thead>
                 <tbody>
                     <c:forEach var="a" items="${appointments}">
                     <tr>
-                        <td><strong><fmt:formatDate value="${a.slotDatetime}" type="both" pattern="dd MMM yyyy, HH:mm"/></strong></td>
+                        <td><strong><fmt:formatDate value="${a.slotDatetimeAsDate}" type="both" pattern="dd MMM yyyy, HH:mm"/></strong></td>
                         <td>Dr. ${a.doctor.user.name}</td>
                         <td><span class="badge badge-normal">${a.status}</span></td>
+                        <td><a href="<c:url value='/appointments/${a.id}/timeline'/>" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">View</a></td>
                     </tr>
                     </c:forEach>
                     <c:if test="${empty appointments}">
-                        <tr><td colspan="3" style="text-align:center; padding:2rem; color:var(--text-muted);">No past appointments.</td></tr>
+                        <tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--text-muted);">No past appointments.</td></tr>
                     </c:if>
                 </tbody>
             </table>
@@ -58,7 +60,7 @@
             </h3>
             <table>
                 <thead>
-                    <tr><th>Date</th><th>Doctor</th><th>Diagnosis</th></tr>
+                    <tr><th>Date</th><th>Doctor</th><th>Diagnosis</th><th>PDF</th></tr>
                 </thead>
                 <tbody>
                     <c:forEach var="p" items="${prescriptions}">
@@ -66,10 +68,11 @@
                         <td><strong><fmt:formatDate value="${p.issuedAt}" type="both" pattern="dd MMM yyyy"/></strong></td>
                         <td>Dr. ${p.doctor.user.name}</td>
                         <td style="font-style: italic;">${p.diagnosis}</td>
+                        <td><a href="<c:url value='/prescriptions/download/${p.id}'/>" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">PDF</a></td>
                     </tr>
                     </c:forEach>
                     <c:if test="${empty prescriptions}">
-                        <tr><td colspan="3" style="text-align:center; padding:2rem; color:var(--text-muted);">No prescriptions found.</td></tr>
+                        <tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--text-muted);">No prescriptions found.</td></tr>
                     </c:if>
                 </tbody>
             </table>

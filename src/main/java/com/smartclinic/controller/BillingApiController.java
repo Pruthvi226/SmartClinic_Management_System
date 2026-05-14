@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,13 +84,16 @@ public class BillingApiController {
     @PutMapping("/{id}/payment-status")
     public ResponseEntity<Map<String, Object>> updatePaymentStatus(
             @PathVariable Long id,
-            @RequestParam String status) {
+            @RequestParam String status,
+            @RequestParam(value = "paymentMode", required = false) String paymentMode,
+            @RequestParam(value = "paidAmount", required = false) BigDecimal paidAmount,
+            @RequestParam(value = "paymentReference", required = false) String paymentReference) {
         try {
             // Validate status
             if (!isValidPaymentStatus(status)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(createErrorResponse(
-                                "Invalid payment status. Allowed values: PENDING, COMPLETED, FAILED, REFUNDED"));
+                                "Invalid payment status. Allowed values: PENDING, PARTIAL, PAID, FAILED, REFUNDED"));
             }
 
             Billing billing = billingService.findById(id);
@@ -98,7 +102,7 @@ public class BillingApiController {
                         .body(createErrorResponse("Billing record not found with id: " + id));
             }
 
-            billingService.updatePaymentStatus(id, status);
+            billingService.updatePayment(id, status, paymentMode, paidAmount, paymentReference);
             billing = billingService.findById(id); // Reload to get updated data
 
             Map<String, Object> response = new HashMap<>();
@@ -125,7 +129,7 @@ public class BillingApiController {
 
             for (Billing billing : billings) {
                 totalAmount += billing.getTotal() != null ? billing.getTotal().doubleValue() : 0;
-                if ("COMPLETED".equals(billing.getPaymentStatus())) {
+                if ("PAID".equals(billing.getPaymentStatus())) {
                     paidAmount += billing.getTotal() != null ? billing.getTotal().doubleValue() : 0;
                 } else if ("PENDING".equals(billing.getPaymentStatus())) {
                     pendingAmount += billing.getTotal() != null ? billing.getTotal().doubleValue() : 0;
@@ -147,7 +151,8 @@ public class BillingApiController {
     private boolean isValidPaymentStatus(String status) {
         return status != null &&
                 (status.equals("PENDING") ||
-                        status.equals("COMPLETED") ||
+                        status.equals("PAID") ||
+                        status.equals("PARTIAL") ||
                         status.equals("FAILED") ||
                         status.equals("REFUNDED"));
     }

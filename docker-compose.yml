@@ -1,7 +1,9 @@
+name: smartclinic
+
 services:
   db:
     image: mysql:8.0
-    container_name: smartclinic-db
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_DATABASE: ${DB_NAME:-smartclinic}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
@@ -18,17 +20,19 @@ services:
       - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
 
   app:
-    build: .
-    container_name: smartclinic-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: smartclinic-app:latest
     ports:
-      - "8080:8080"
+      - "${APP_PORT:-8080}:8080"
     environment:
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_NAME=${DB_NAME:-smartclinic}
-      - DB_USER=${DB_USER:-root}
-      - DB_PASSWORD=${DB_PASSWORD:-rootpassword}
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-smartclinic}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
     depends_on:
       db:
         condition: service_healthy

@@ -23,6 +23,9 @@ public class PrescriptionItem {
     @Column(nullable = false)
     private String duration;
 
+    @Column(name = "quantity")
+    private Integer quantity = 1;
+
     @Column(columnDefinition = "TEXT")
     private String instructions;
 
@@ -40,6 +43,9 @@ public class PrescriptionItem {
 
     public String getDuration() { return duration; }
     public void setDuration(String duration) { this.duration = duration; }
+
+    public Integer getQuantity() { return quantity == null || quantity < 1 ? 1 : quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
 
     public String getInstructions() { return instructions; }
     public void setInstructions(String instructions) { this.instructions = instructions; }

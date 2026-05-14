@@ -80,12 +80,13 @@ $(document).ready(function() {
         }
     }
     
-    let itemIndex = 0;
+    let itemIndex = $('.prescription-item').length;
     $('#addMedicineBtn').on('click', function() {
         const row = `
-        <div class="prescription-item" style="display:flex;gap:10px;margin-bottom:10px;">
-            <input type="text" name="items[`+itemIndex+`].medicineName" placeholder="Medicine" class="form-control" required/>
+        <div class="prescription-item" style="display:grid;grid-template-columns:1.4fr 0.8fr 0.7fr 0.9fr 1.4fr auto;gap:10px;margin-bottom:10px;align-items:center;">
+            <input type="text" name="items[`+itemIndex+`].medicineName" placeholder="Medicine" class="form-control medicine-name-input" required/>
             <input type="text" name="items[`+itemIndex+`].dosage" placeholder="Dosage" class="form-control" required/>
+            <input type="number" min="1" name="items[`+itemIndex+`].quantity" value="1" placeholder="Qty" class="form-control" required/>
             <input type="text" name="items[`+itemIndex+`].duration" placeholder="Duration" class="form-control" required/>
             <input type="text" name="items[`+itemIndex+`].instructions" placeholder="Instructions" class="form-control"/>
             <button type="button" class="btn btn-remove" style="background:#EF4444;color:white;" onclick="$(this).parent().remove()">X</button>
@@ -93,5 +94,18 @@ $(document).ready(function() {
         `;
         $('#medicineItemsContainer').append(row);
         itemIndex++;
+    });
+
+    $(document).on('input', '.medicine-name-input', function() {
+        const allergiesText = String($('#patientAllergies').data('allergies') || '').toLowerCase();
+        const medicine = String($(this).val() || '').toLowerCase().trim();
+        if (!allergiesText || allergiesText === 'none' || !medicine) {
+            $('#allergyWarning').hide();
+            return;
+        }
+
+        const terms = allergiesText.split(/[,\n;]/).map(term => term.trim()).filter(Boolean);
+        const matched = terms.some(term => medicine.includes(term) || term.includes(medicine));
+        $('#allergyWarning').toggle(matched);
     });
 });

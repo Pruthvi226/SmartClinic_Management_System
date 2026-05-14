@@ -13,9 +13,13 @@
 <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;">
         <h2 style="margin:0">My Daily Schedule</h2>
-        <div style="text-align:right;">
-            <div style="font-weight:600; color:var(--primary);">Dr. ${doctor.user.name}</div>
-            <div style="font-size:0.875rem; color:var(--text-muted);">${doctor.specialization}</div>
+        <div style="text-align:right; display:flex; gap:0.5rem; align-items:center;">
+            <div>
+                <div style="font-weight:600; color:var(--primary);">Dr. ${doctor.user.name}</div>
+                <div style="font-size:0.875rem; color:var(--text-muted);">${doctor.specialization}</div>
+            </div>
+            <a href="<c:url value='/doctor/profile'/>" class="btn btn-secondary" style="padding:0.35rem 0.7rem;">Profile</a>
+            <a href="<c:url value='/doctor/completed'/>" class="btn btn-secondary" style="padding:0.35rem 0.7rem;">Completed</a>
         </div>
     </div>
 
@@ -25,12 +29,18 @@
             Consultation completed and prescription saved successfully.
         </div>
     </c:if>
+    <c:if test="${param.draftSaved != null}">
+        <div style="color:#92400E; background:#FFFBEB; border:1px solid #FDE68A; padding:1rem; border-radius:12px; margin-top:1.5rem;">
+            Consultation draft saved. You can reopen the appointment and complete it later.
+        </div>
+    </c:if>
 
     <table>
         <thead>
             <tr>
                 <th>Time</th>
                 <th>Patient Name</th>
+                <th>Token</th>
                 <th>Priority</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -44,13 +54,17 @@
                     <div style="font-weight:600;">${a.patient.name}</div>
                     <div style="font-size:0.75rem; color:var(--text-muted);">#PAT-${a.patient.id}</div>
                 </td>
+                <td><span class="badge badge-normal">${a.tokenNumber}</span></td>
                 <td>
                     <c:set var="pClass" value="badge-normal" />
                     <c:if test="${a.priority == 'EMERGENCY'}"><c:set var="pClass" value="badge-emergency" /></c:if>
                     <c:if test="${a.priority == 'SENIOR'}"><c:set var="pClass" value="badge-senior" /></c:if>
                     <span class="badge ${pClass}">${a.priority}</span>
                 </td>
-                <td><span class="badge" style="background:#F1F5F9; color:var(--text-dark);">${a.status}</span></td>
+                <td>
+                    <span class="badge" style="background:#F1F5F9; color:var(--text-dark);">${a.status}</span>
+                    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">${a.queueStateLabel}</div>
+                </td>
                 <td>
                     <c:if test="${a.status == 'SCHEDULED'}">
                         <a href="<c:url value='/doctor/consult/${a.id}'/>" class="btn btn-primary" style="padding:0.4rem 0.8rem; font-size:0.8rem;">
@@ -68,7 +82,7 @@
             </tr>
             </c:forEach>
             <c:if test="${empty appointments}">
-            <tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted);">No scheduled appointments for today. Take a break!</td></tr>
+            <tr><td colspan="6" style="text-align:center; padding:3rem; color:var(--text-muted);">No scheduled appointments for today. Take a break!</td></tr>
             </c:if>
         </tbody>
     </table>

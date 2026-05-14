@@ -1,6 +1,8 @@
 package com.smartclinic.controller;
 
 import com.smartclinic.dto.ErrorResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -19,13 +21,15 @@ import javax.validation.ConstraintViolationException;
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     /**
      * Handle generic exceptions
      */
     @ExceptionHandler(Exception.class)
     public String handleException(Exception ex, Model model) {
         model.addAttribute("errorMessage", ex.getMessage());
-        ex.printStackTrace();
+        logger.error("Unhandled web exception", ex);
         return "error/generic";
     }
 
@@ -129,7 +133,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         error.addDetail("exceptionType", ex.getClass().getSimpleName());
         error.addDetail("message", ex.getMessage());
 
-        ex.printStackTrace();
+        logger.error("Unhandled throwable", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

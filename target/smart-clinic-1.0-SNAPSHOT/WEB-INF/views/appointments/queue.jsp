@@ -6,10 +6,13 @@
 <div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <h2 style="margin:0">Live Appointment Queue</h2>
-        <a href="<c:url value='/appointments/book'/>" class="btn btn-primary">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-            Book New
-        </a>
+        <div style="display:flex; gap:0.5rem;">
+            <a href="<c:url value='/appointments/waitlist'/>" class="btn btn-secondary">Waitlist</a>
+            <a href="<c:url value='/appointments/book'/>" class="btn btn-primary">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                Book New
+            </a>
+        </div>
     </div>
 
     <div style="margin-top: 1.5rem; display:flex; gap:10px; align-items:flex-end;">
@@ -28,6 +31,27 @@
         </button>
     </div>
 
+    <c:if test="${param.rescheduled != null}">
+        <div style="color:#16A34A; background:#F0FDF4; border:1px solid #DCFCE7; padding:1rem; border-radius:8px; margin-top:1.5rem;">
+            Appointment rescheduled successfully.
+        </div>
+    </c:if>
+    <c:if test="${param.cancelled != null}">
+        <div style="color:#991B1B; background:#FEF2F2; border:1px solid #FECACA; padding:1rem; border-radius:8px; margin-top:1.5rem;">
+            Appointment cancelled and removed from the active queue.
+        </div>
+    </c:if>
+    <c:if test="${param.waitlistNotified != null}">
+        <div style="color:#92400E; background:#FFFBEB; border:1px solid #FDE68A; padding:1rem; border-radius:8px; margin-top:1.5rem;">
+            A matching waitlist patient was marked as notified for the released slot.
+        </div>
+    </c:if>
+    <c:if test="${param.error != null}">
+        <div style="color:#991B1B; background:#FEF2F2; border:1px solid #FECACA; padding:1rem; border-radius:8px; margin-top:1.5rem;">
+            Could not update that appointment. Refresh the queue and try again.
+        </div>
+    </c:if>
+
     <div id="queueContent" style="margin-top: 2rem;">
         <div style="text-align:center; padding:3rem; color:var(--text-muted);">
             Select a doctor to view their current queue
@@ -37,6 +61,16 @@
 
 <script>
 $(document).ready(function() {
+    const csrfParam = '${_csrf.parameterName}';
+    const csrfToken = '${_csrf.token}';
+
+    window.captureCancelReason = function(form) {
+        const reason = prompt('Cancellation reason (optional)');
+        if (reason === null) return false;
+        form.querySelector('input[name="reason"]').value = reason;
+        return confirm('Cancel this appointment?');
+    };
+
     function loadQueue(doctorId) {
         if(doctorId == "0") {
             $("#queueContent").html('<div style="text-align:center; padding:3rem; color:var(--text-muted);">Please select a specific doctor to see their live queue.</div>');
@@ -45,7 +79,8 @@ $(document).ready(function() {
         
         $("#queueContent").html('<div style="text-align:center; padding:3rem;">Loading live queue...</div>');
         
-        $.get("<c:url value='/api/queue/'/>" + doctorId, function(data) {
+        $.get("<c:url value='/api/appointments/queue/'/>" + doctorId, function(response) {
+            const data = response.data || response;
             if(data.length === 0) {
                 $("#queueContent").html('<div style="text-align:center; padding:3rem; color:var(--text-muted);">No appointments scheduled for this doctor today.</div>');
                 return;
@@ -60,15 +95,27 @@ $(document).ready(function() {
                 let date = new Date(apt.slotDatetime);
                 let timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 
-                html += `<tr>
-                    <td><strong>${timeStr}</strong></td>
-                    <td>${apt.patient.name}</td>
-                    <td><span class="badge ${badgeClass}">${apt.priority}</span></td>
-                    <td>${apt.status}</td>
-                    <td>
-                        <a href="<c:url value='/doctor/consult/'/>${apt.id}" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Start Consult</a>
-                    </td>
-                </tr>`;
+                const rescheduleUrl = '<c:url value="/appointments/"/>' + apt.id + '/reschedule';
+                const cancelUrl = '<c:url value="/appointments/"/>' + apt.id + '/cancel';
+                const timelineUrl = '<c:url value="/appointments/"/>' + apt.id + '/timeline';
+                const action = apt.status === 'SCHEDULED'
+                    ? '<div style="display:flex; gap:0.4rem; align-items:center;">'
+                        + '<a href="' + timelineUrl + '" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Timeline</a>'
+                        + '<a href="' + rescheduleUrl + '" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Reschedule</a>'
+                        + '<form method="post" action="' + cancelUrl + '" onsubmit="return captureCancelReason(this);" style="display:inline; margin:0;">'
+                        + '<input type="hidden" name="' + csrfParam + '" value="' + csrfToken + '"/>'
+                        + '<input type="hidden" name="reason" value=""/>'
+                        + '<button type="submit" class="btn" style="background:#FEE2E2;color:#991B1B;padding:0.3rem 0.6rem;font-size:0.8rem;">Cancel</button>'
+                        + '</form>'
+                        + '</div>'
+                    : '<a href="' + timelineUrl + '" class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.8rem;">Timeline</a>';
+                html += '<tr>'
+                    + '<td><strong>' + timeStr + '</strong></td>'
+                    + '<td>' + (apt.patient ? apt.patient.name : 'Unknown') + '</td>'
+                    + '<td><span class="badge ' + badgeClass + '">' + apt.priority + '</span></td>'
+                    + '<td>' + apt.status + '</td>'
+                    + '<td>' + action + '</td>'
+                    + '</tr>';
             });
             html += '</tbody></table>';
             $("#queueContent").html(html);
