@@ -3,6 +3,8 @@
 .vscode
 .idea
 target
+tmp
+.codex-e2e-*
 *.log
 .env
 .env.*
@@ -11,3 +13,4 @@ Dockerfile
 docker-compose.override.yml
 README.md
 INTERNSHIP_DEMO.md
+*.war

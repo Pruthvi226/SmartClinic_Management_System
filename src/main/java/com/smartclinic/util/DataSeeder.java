@@ -2,6 +2,7 @@ package com.smartclinic.util;
 
 import com.smartclinic.model.Appointment;
 import com.smartclinic.model.Billing;
+import com.smartclinic.model.Department;
 import com.smartclinic.model.Doctor;
 import com.smartclinic.model.MedicineInventory;
 import com.smartclinic.model.Patient;
@@ -10,10 +11,14 @@ import com.smartclinic.model.PrescriptionItem;
 import com.smartclinic.model.User;
 import com.smartclinic.service.AppointmentService;
 import com.smartclinic.service.BillingService;
+import com.smartclinic.service.DepartmentService;
 import com.smartclinic.service.DoctorService;
 import com.smartclinic.service.MedicineInventoryService;
 import com.smartclinic.service.PatientService;
 import com.smartclinic.service.PrescriptionService;
+import com.smartclinic.service.ReminderLogService;
+import com.smartclinic.service.StockMovementService;
+import com.smartclinic.service.SystemSettingService;
 import com.smartclinic.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -57,6 +62,18 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
     private MedicineInventoryService medicineInventoryService;
 
     @Autowired
+    private DepartmentService departmentService;
+
+    @Autowired
+    private SystemSettingService systemSettingService;
+
+    @Autowired
+    private ReminderLogService reminderLogService;
+
+    @Autowired
+    private StockMovementService stockMovementService;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
@@ -78,9 +95,11 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
                 "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY", 30);
         Doctor cardioDoctor = upsertDoctor(cardioUser, "Cardiology", "MONDAY,WEDNESDAY,FRIDAY", 30);
 
+        seedDepartmentsAndSettings();
         seedMedicineInventory();
         List<Patient> patients = seedPatients();
         seedAppointmentsAndClinicalData(patients, generalDoctor, cardioDoctor);
+        seedOperationalDemoRecords();
 
         logger.info("Demo users ready. Admin login: {} / admin123", admin.getEmail());
     }
@@ -126,26 +145,71 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
     }
 
     private void seedMedicineInventory() {
-        upsertMedicine("Aspirin", "Cardiology", 120, 20, "2.00");
-        upsertMedicine("Atorvastatin", "Cardiology", 8, 10, "12.00");
-        upsertMedicine("Pantoprazole", "Gastro", 45, 15, "6.00");
-        upsertMedicine("Paracetamol", "General", 150, 25, "3.00");
-        upsertMedicine("Amoxicillin", "Antibiotic", 25, 10, "8.00");
+        upsertMedicine("Aspirin", "Cardiology", 120, 20, "2.00", "ASP-26-A",
+                LocalDate.now().plusDays(180), "MediSupply India", "Clopidogrel");
+        upsertMedicine("Atorvastatin", "Cardiology", 8, 10, "12.00", "ATO-26-B",
+                LocalDate.now().plusDays(35), "CardioPharm", "Rosuvastatin");
+        upsertMedicine("Pantoprazole", "Gastro", 45, 15, "6.00", "PAN-26-C",
+                LocalDate.now().plusDays(90), "HealthKart Wholesale", "Omeprazole");
+        upsertMedicine("Paracetamol", "General", 150, 25, "3.00", "PCM-26-D",
+                LocalDate.now().plusDays(300), "MediSupply India", "Ibuprofen");
+        upsertMedicine("Amoxicillin", "Antibiotic", 25, 10, "8.00", "AMX-26-E",
+                LocalDate.now().plusDays(120), "Antibiotic House", "Azithromycin");
     }
 
-    private void upsertMedicine(String name, String category, int stockQuantity, int reorderLevel, String unitPrice) {
+    private void upsertMedicine(String name, String category, int stockQuantity, int reorderLevel, String unitPrice,
+            LocalDate expiryDate, String supplierName, String substitutionName) {
+        upsertMedicine(name, category, stockQuantity, reorderLevel, unitPrice, null, expiryDate, supplierName, substitutionName);
+    }
+
+    private void upsertMedicine(String name, String category, int stockQuantity, int reorderLevel, String unitPrice,
+            String batchNumber, LocalDate expiryDate, String supplierName, String substitutionName) {
         MedicineInventory medicine = medicineInventoryService.findByName(name);
-        if (medicine != null) {
-            return;
+        if (medicine == null) {
+            medicine = new MedicineInventory();
+            medicine.setMedicineName(name);
+            medicine.setStockQuantity(stockQuantity);
+            medicine.setUnitPrice(new BigDecimal(unitPrice));
         }
 
-        medicine = new MedicineInventory();
-        medicine.setMedicineName(name);
         medicine.setCategory(category);
-        medicine.setStockQuantity(stockQuantity);
+        if (medicine.getStockQuantity() == null || medicine.getStockQuantity() == 0) {
+            medicine.setStockQuantity(stockQuantity);
+        }
         medicine.setReorderLevel(reorderLevel);
-        medicine.setUnitPrice(new BigDecimal(unitPrice));
+        if (medicine.getUnitPrice().compareTo(BigDecimal.ZERO) == 0) {
+            medicine.setUnitPrice(new BigDecimal(unitPrice));
+        }
+        medicine.setBatchNumber(batchNumber);
+        medicine.setExpiryDate(expiryDate);
+        medicine.setSupplierName(supplierName);
+        medicine.setSubstitutionName(substitutionName);
         medicineInventoryService.save(medicine);
+    }
+
+    private void seedDepartmentsAndSettings() {
+        upsertDepartment("General Physician", "Primary OPD and wellness consultations");
+        upsertDepartment("Cardiology", "Heart health, ECG review, and lipid management");
+        upsertDepartment("Emergency", "Urgent triage and emergency override workflow");
+
+        systemSettingService.save("consultation.fee.normal", "100.00", "Normal consultation fee");
+        systemSettingService.save("consultation.fee.emergency", "200.00", "Emergency consultation fee");
+        systemSettingService.save("consultation.fee.senior", "80.00", "Senior citizen consultation fee");
+        systemSettingService.save("tax.rate", "0.18", "Fallback tax rate when stored procedure is unavailable");
+        systemSettingService.save("hospital.name", "SmartClinic Hospital", "Hospital display name");
+    }
+
+    private void upsertDepartment(String name, String description) {
+        boolean exists = departmentService.findAll().stream()
+                .anyMatch(department -> name.equalsIgnoreCase(department.getName()));
+        if (exists) {
+            return;
+        }
+        Department department = new Department();
+        department.setName(name);
+        department.setDescription(description);
+        department.setActive(true);
+        departmentService.save(department);
     }
 
     private List<Patient> seedPatients() {
@@ -235,6 +299,17 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
         prescription.setDoctor(appointment.getDoctor());
         prescription.setPatient(appointment.getPatient());
         prescription.setDiagnosis("Stable angina symptoms reviewed. ECG advised, lipid profile requested, and medication started.");
+        prescription.setClinicalTemplate("Cardiology Review");
+        prescription.setDiagnosisTag("R07 Chest pain");
+        prescription.setBloodPressure("128/84");
+        prescription.setPulse("78");
+        prescription.setTemperature("98.4 F");
+        prescription.setSpo2("98%");
+        prescription.setWeightKg("74");
+        prescription.setLabOrders("ECG, Lipid profile");
+        prescription.setFollowUpDays(14);
+        prescription.setRiskFlags("Cardiac risk, follow-up required");
+        prescription.setFavoriteName("Cardiac Starter Pack");
 
         PrescriptionItem aspirin = medicine("Aspirin", "75 mg", "30 days", 1, "Take once daily after breakfast");
         PrescriptionItem statin = medicine("Atorvastatin", "10 mg", "30 days", 1, "Take once at night");
@@ -262,7 +337,24 @@ public class DataSeeder implements ApplicationListener<ContextRefreshedEvent> {
 
         Billing bill = billingService.generateBill(appointment.getId());
         if (bill != null && bill.getId() != null) {
-            billingService.updatePayment(bill.getId(), "PAID", "UPI", bill.getTotal(), "DEMO-UPI-001");
+            billingService.updatePayment(bill.getId(), "PAID", "UPI", bill.getTotal(), "DEMO-UPI-001",
+                    BigDecimal.ZERO, null, "Demo Health Insurance", "CLM-1001", "APPROVED");
+        }
+    }
+
+    private void seedOperationalDemoRecords() {
+        if (reminderLogService.findAll().isEmpty()) {
+            appointmentService.findAll().stream()
+                    .filter(appointment -> appointment.getStatus() == Appointment.Status.SCHEDULED)
+                    .findFirst()
+                    .ifPresent(appointment -> reminderLogService.sendMockReminder(appointment.getId(), "SMS"));
+        }
+
+        if (stockMovementService.findAll().isEmpty()) {
+            MedicineInventory atorvastatin = medicineInventoryService.findByName("Atorvastatin");
+            MedicineInventory aspirin = medicineInventoryService.findByName("Aspirin");
+            stockMovementService.record(atorvastatin, "RESTOCK", 20, "Opening reorder plan for low stock demo");
+            stockMovementService.record(aspirin, "DISPENSE", 1, "Demo completed prescription #1");
         }
     }
 }

@@ -1,6 +1,8 @@
-# Smart Hospital Management System
+# SmartClinic Management System
 
 A comprehensive Spring MVC-based Hospital Management System with patient management, doctor scheduling, appointment booking, prescription management, and billing features.
+
+For internship presentation preparation, read `PROJECT_EXPLANATION.md` and `INTERNSHIP_DEMO.md`.
 
 ## 📋 Table of Contents
 
@@ -149,11 +151,11 @@ A comprehensive Spring MVC-based Hospital Management System with patient managem
 3. **Build and run**
 
    ```bash
-   docker compose up --build
+   docker compose up --build -d
    ```
 
 4. **Access the application**
-   - Web UI: http://localhost:8080
+   - Web UI: http://localhost:8080/login
    - Login with default credentials:
      - Email: `admin@smartclinic.com`
      - Password: `admin123`
@@ -213,14 +215,14 @@ mvn jetty:run
 **Using Tomcat (after building WAR):**
 
 ```bash
-# WAR file location: target/smart-clinic-1.0-SNAPSHOT.war
+# WAR file location: target/smart-clinic.war
 # Deploy to Tomcat webapps folder
-cp target/smart-clinic-1.0-SNAPSHOT.war $CATALINA_HOME/webapps/ROOT.war
+cp target/smart-clinic.war $CATALINA_HOME/webapps/ROOT.war
 ```
 
 ### 5. Access Application
 
-- **URL:** http://localhost:8080
+- **URL:** http://localhost:8080/login
 - **Default Admin:** admin@smartclinic.com / admin123
 - **Default Doctor:** doctor@smartclinic.com / doctor123
 - **Default Reception:** reception@smartclinic.com / reception123
@@ -234,7 +236,7 @@ cp target/smart-clinic-1.0-SNAPSHOT.war $CATALINA_HOME/webapps/ROOT.war
 
 ```bash
 # Build and start services
-docker compose up --build
+docker compose up --build -d
 
 # Stop services
 docker compose down
@@ -242,11 +244,27 @@ docker compose down
 # View logs
 docker compose logs -f app
 
+# Check container health
+docker compose ps
+
 # Access MySQL from container
 docker compose exec db mysql -u root -p smartclinic
 ```
 
 If port `8080` or `3308` is already busy, change `APP_PORT` or `DB_HOST_PORT` in `.env`, then rerun Docker Compose.
+
+On Windows PowerShell, you can run the bundled smoke test:
+
+```powershell
+.\scripts\docker-smoke.ps1 -AppPort 8080 -DbHostPort 3308
+```
+
+For a clean database demo, remove the Compose volume before starting again:
+
+```bash
+docker compose down -v
+docker compose up --build -d
+```
 
 ### Production Deployment
 
@@ -642,6 +660,14 @@ docker compose logs db
 
 # Verify containers
 docker compose ps
+```
+
+**Error: "failed to connect to the docker API" or "dockerDesktopLinuxEngine not found"**
+
+Start Docker Desktop and wait until it says the engine is running, then rerun:
+
+```bash
+docker compose up --build -d
 ```
 
 ### Application Not Starting

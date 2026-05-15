@@ -1,6 +1,11 @@
 target/
 .env
+.env.*
+!.env.example
 *.log
+*.war
+tmp/
+.codex-e2e-*
 .idea/
 .vscode/
 *.class
