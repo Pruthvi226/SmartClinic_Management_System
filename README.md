@@ -7,6 +7,8 @@
 ![JSP](https://img.shields.io/badge/JSP%20%2F%20JSTL-Server%20Rendered-orange?style=for-the-badge)
 ![Maven](https://img.shields.io/badge/Maven-WAR%20Build-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
 
+**Live Demo:** [smartclinicmanagementsystem-production.up.railway.app](https://smartclinicmanagementsystem-production.up.railway.app)
+
 🏥 **SmartClinic** is a full-stack Java web application for managing clinic and hospital operations across admin, reception, doctor, pharmacy, and billing workflows. It is built with a classic Spring MVC + JSP architecture, Hibernate ORM, MySQL, Spring Security, and Dockerized Tomcat deployment.
 
 This repository is designed as a portfolio-ready backend engineering project. It demonstrates layered Java architecture, role-based authentication, real database relationships, transactional business logic, server-rendered UI flows, REST endpoints, and deployable infrastructure.
