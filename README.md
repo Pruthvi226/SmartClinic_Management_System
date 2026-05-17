@@ -36,7 +36,7 @@ The application is not only CRUD. It includes business rules such as smart slot 
 | Module | Implemented functionality |
 | --- | --- |
 | Authentication | Spring Security form login, BCrypt passwords, logout flow, CSRF protection, role-based navigation, and session-based access control. |
-| Admin | Dashboard metrics, user management, doctor CRUD, doctor leave blocking, departments, system settings, daily reports, revenue analytics, audit filters, and CSV exports. |
+| Admin | Dashboard metrics, user management with activate/deactivate controls, doctor CRUD, doctor leave blocking, departments, system settings, daily reports, revenue analytics, audit filters, and CSV exports. |
 | Reception | Patient registration/edit/search, patient history, appointment booking, queue tokens, check-in/no-show, reschedule, cancel, calendar, waitlist, and mock SMS/email reminders. |
 | Doctor | Doctor schedule, profile, consultation form, clinical templates, diagnosis tags, vitals, lab orders, risk flags, follow-up days, prescription favorites, drafts, and completed visits. |
 | Pharmacy | Pending prescription queue, medicine inventory, restocking, low-stock alerts, expiry watch, supplier/batch tracking, substitution suggestions, stock movements, and purchase-order draft. |
@@ -173,6 +173,14 @@ Smart_Hospital_Management/
 | `RECEPTIONIST` | `/appointments/queue` |
 | `PHARMACIST` | `/pharmacy/queue` |
 
+### Admin User Lifecycle
+
+SmartClinic does not expose public account registration from the login page. Staff accounts are created by an admin from `/admin/users`, where the admin enters the staff member's name, email, initial password, and role. Passwords are stored with BCrypt, and new accounts are active by default.
+
+Admins can edit a user's name, email, role, password, and active status. The user list provides explicit `Activate` and `Deactivate` actions instead of a generic toggle label. Deactivated users remain in the database for audit and historical relationships, but Spring Security prevents them from signing in. The currently signed-in admin is protected from deactivating their own account.
+
+Doctor onboarding can also be performed from `/admin/doctors/add`. That flow creates a `DOCTOR` login account and links it to a doctor profile containing specialization, available weekdays, and appointment slot duration.
+
 ### Appointment Booking
 
 Reception selects a patient, doctor, date, and priority. The booking page calls:
@@ -252,7 +260,7 @@ The database is MySQL 8. Hibernate maps Java entities from `com.smartclinic.mode
 
 | Table | Purpose |
 | --- | --- |
-| `users` | Login accounts with roles and active status. |
+| `users` | Staff login accounts with roles and active status; deactivation is used instead of hard deletion. |
 | `doctors` | Doctor profile linked one-to-one with a user account. |
 | `doctor_leaves` | Doctor blocked dates that prevent appointment slot generation. |
 | `departments` | Admin-managed departments and specializations. |
@@ -310,6 +318,7 @@ users 1--* audit_log
 
 - JSP layout includes Spring Security CSRF meta tags and injects CSRF hidden inputs into POST forms.
 - `UserServiceImpl` implements `UserDetailsService` and maps database roles to Spring Security authorities.
+- Inactive users are passed to Spring Security as disabled accounts, so deactivated staff cannot authenticate.
 - `BCryptPasswordEncoder` is configured as the password encoder.
 
 ## Installation
@@ -532,7 +541,7 @@ screenshots/
 | --- | --- | --- |
 | `screenshots/login-page.png` | `/login` | Shows authentication entry point, demo roles, and production-style login flow. |
 | `screenshots/admin-dashboard.png` | `/admin/dashboard` | Highlights admin metrics for patients, doctors, low stock, and system users. |
-| `screenshots/user-management.png` | `/admin/users` | Demonstrates role-based user creation, active toggling, and BCrypt-backed accounts. |
+| `screenshots/user-management.png` | `/admin/users` | Demonstrates role-based user creation, activate/deactivate controls, self-deactivation protection, and BCrypt-backed accounts. |
 | `screenshots/doctor-management.png` | `/admin/doctors` | Shows doctor specialization, availability, slot duration, and leave management entry points. |
 | `screenshots/patient-directory.png` | `/patients/search` | Shows searchable patient records and operational actions like history, edit, and appointment booking. |
 | `screenshots/patient-registration.png` | `/patients/register` | Captures validation-ready patient demographic, blood group, address, and allergy fields. |
@@ -607,5 +616,3 @@ When contributing, keep the existing MVC layering intact:
 - Services should own transactions and workflow decisions.
 - DAOs should encapsulate Hibernate queries.
 - JSP pages should stay focused on rendering and form submission.
-
-

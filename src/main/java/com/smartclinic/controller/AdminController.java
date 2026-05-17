@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -113,10 +114,14 @@ public class AdminController {
             @RequestParam("email") String email,
             @RequestParam(value = "password", required = false) String password,
             @RequestParam("role") User.Role role,
-            @RequestParam(value = "active", required = false) String active) {
+            @RequestParam(value = "active", required = false) String active,
+            Authentication authentication) {
         User user = userService.findById(id);
         if (user == null) {
             return "redirect:/admin/users?error=not_found";
+        }
+        if (authentication != null && user.getEmail().equals(authentication.getName()) && active == null) {
+            return "redirect:/admin/users/" + id + "/edit?error=self_deactivate";
         }
         user.setName(name);
         user.setEmail(email);
@@ -130,9 +135,17 @@ public class AdminController {
     }
 
     @PostMapping("/users/{id}/toggle")
-    public String toggleUser(@PathVariable("id") Long id) {
+    public String toggleUser(@PathVariable("id") Long id, Authentication authentication) {
+        User user = userService.findById(id);
+        if (user == null) {
+            return "redirect:/admin/users?error=not_found";
+        }
+        if (authentication != null && user.isActive() && user.getEmail().equals(authentication.getName())) {
+            return "redirect:/admin/users?error=self_deactivate";
+        }
+        boolean wasActive = user.isActive();
         userService.toggleActive(id);
-        return "redirect:/admin/users?toggled=true";
+        return wasActive ? "redirect:/admin/users?deactivated=true" : "redirect:/admin/users?activated=true";
     }
 
     @GetMapping("/doctors")
