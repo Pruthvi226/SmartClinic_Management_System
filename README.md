@@ -464,9 +464,7 @@ Current tests cover:
 - `AppointmentServiceImpl` cancellation, rescheduling, missing doctor handling, and leave-date behavior.
 - `MedicineInventoryServiceImpl` stock deduction and insufficient-stock protection.
 
-## Screenshots
 
-No screenshots are currently checked into the repository. Add the following files under `screenshots/` for a complete portfolio presentation.
 
 ### Login Page
 
